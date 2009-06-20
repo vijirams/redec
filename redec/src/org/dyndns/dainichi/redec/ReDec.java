@@ -1,4 +1,6 @@
- package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec;
+
+import java.io.PrintWriter;
 
 import processing.core.PApplet;
 import processing.core.PFont;
@@ -7,10 +9,12 @@ import JMyron.JMyron;
 
 public class ReDec extends PApplet
 {
+	public Statistics[]		stats		= new Statistics[] { new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this),
+			new Statistics(this)		};
 	public final boolean	DEBUG		= true;
 	private final int		CAM_WIDTH	= 320;
 	private final int		CAM_HEIGHT	= 240;
-	private final int		STEP_X		= 5;
+	private final int		STEP_X		= 4;
 	private PImage			bg1			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	private PImage			bg2			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	private PFont			font;
@@ -36,9 +40,11 @@ public class ReDec extends PApplet
 	private Color			violet;
 	private Color			white;
 	private Color			grey;
+	private PrintWriter		pr;
 
 	public void setup()
 	{
+		pr = createWriter("ColorLines.txt");
 		if (colorMode == RGB)
 		{
 			silver = new Color(this, new float[] { 176f, 193f, 190f }, new float[] { 33.7f, 32.7f, 31f });
@@ -127,45 +133,33 @@ public class ReDec extends PApplet
 			float[][] valsHSB;
 			valsRGB = new float[][] { Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.RED),
 					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.GREEN), Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.BLUE) };
-			valsHSB = new float[][] { Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.HUE),
-					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.SATURATION),
-					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.BRIGHTNESS) };
+			valsHSB = new float[][] { Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.RED),
+					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.GREEN), Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.BLUE) };
 			float[] colorHSB = new float[] { valsHSB[0][0], valsHSB[1][0], valsHSB[2][0] };
 			float[] colorRGB = new float[] { valsRGB[0][0], valsRGB[1][0], valsRGB[2][0] };
-
-			if (gold.isInRange(colorHSB, colorMode))
-				println(gold);
-			if (silver.isInRange(colorHSB, colorMode))
-				print(silver);
-			if (black.isInRange(colorHSB, colorMode))
-				print(black);
-			if (brown.isInRange(colorHSB, colorMode))
-				print(brown);
-			if (red.isInRange(colorRGB, colorMode))
-				print(red);
-			if (orange.isInRange(colorRGB, colorMode))
-				print(orange);
-			if (yellow.isInRange(colorHSB, colorMode))
-				print(yellow);
-			if (green.isInRange(colorHSB, colorMode))
-				print(green);
-			if (blue.isInRange(colorHSB, colorMode))
-				print(blue);
-			if (violet.isInRange(colorHSB, colorMode))
-				print(violet);
-			if (white.isInRange(colorRGB, colorMode))
-				print(white);
-			if (grey.isInRange(colorHSB, colorMode))
-				print(grey);
-
+			/*
+			 * if (gold.isInRange(colorHSB, colorMode)) println(gold); if
+			 * (silver.isInRange(colorHSB, colorMode)) print(silver); if
+			 * (black.isInRange(colorHSB, colorMode)) print(black); if
+			 * (brown.isInRange(colorHSB, colorMode)) print(brown); if
+			 * (red.isInRange(colorRGB, colorMode)) print(red); if
+			 * (orange.isInRange(colorRGB, colorMode)) print(orange); if
+			 * (yellow.isInRange(colorHSB, colorMode)) print(yellow); if
+			 * (green.isInRange(colorHSB, colorMode)) print(green); if
+			 * (blue.isInRange(colorHSB, colorMode)) print(blue); if
+			 * (violet.isInRange(colorHSB, colorMode)) print(violet); if
+			 * (white.isInRange(colorRGB, colorMode)) print(white); if
+			 * (grey.isInRange(colorHSB, colorMode)) print(grey);
+			 */
 			int hue = (int) valsHSB[0][Statistics.MEAN];
 			int sat = (int) valsHSB[1][Statistics.MEAN];
 			int brt = (int) valsHSB[2][Statistics.MEAN];
-			colorMode(HSB, 255);
+			// colorMode(HSB, 255);
 			int cHSB = color(hue, sat, brt, 255);
+			// cHSB = color(hue())
 			fill(cHSB);
 			stroke(cHSB);
-			rect(x+640, 240, STEP_X, CAM_HEIGHT);
+			rect(x + 640, 240, STEP_X, CAM_HEIGHT);
 			int red = (int) valsRGB[0][Statistics.MEAN];
 			int green = (int) valsRGB[1][Statistics.MEAN];
 			int blue = (int) valsRGB[2][Statistics.MEAN];
@@ -173,37 +167,45 @@ public class ReDec extends PApplet
 			int cRGB = color(red, green, blue, 255);
 			fill(cRGB);
 			stroke(cRGB);
-			rect(x , 240, STEP_X, CAM_HEIGHT);
+			rect(x, 240, STEP_X, CAM_HEIGHT);
 			float l = 16;
 			float m = l - 1;
+			if (mouseX != pmouseX)
+			{
+				stats[0].zero();
+				stats[1].zero();
+				stats[2].zero();
+				stats[3].zero();
+				stats[4].zero();
+				stats[5].zero();
+			}
+			if ((mouseX >= x && mouseX <= x + STEP_X) || (mouseX >= x + 640 && mouseX <= x + STEP_X + 640))
+			{
+				r[0] = stats[0].add(valsRGB[0][Statistics.MEAN])[Statistics.MEAN];
+				r[1] = stats[0].add(valsRGB[0][Statistics.MEAN])[Statistics.SD];
+				g[0] = stats[1].add(valsRGB[1][Statistics.MEAN])[Statistics.MEAN];
+				g[1] = stats[1].add(valsRGB[1][Statistics.MEAN])[Statistics.SD];
+				b[0] = stats[2].add(valsRGB[2][Statistics.MEAN])[Statistics.MEAN];
+				b[1] = stats[2].add(valsRGB[2][Statistics.MEAN])[Statistics.SD];
+
+				h[0] = stats[3].add(hue(cHSB))[Statistics.MEAN];
+				h[1] = stats[3].add(hue(cHSB))[Statistics.SD];
+				s[0] = stats[4].add(saturation(cHSB))[Statistics.MEAN];
+				s[1] = stats[4].add(saturation(cHSB))[Statistics.SD];
+				bb[0] = stats[5].add(brightness(cHSB))[Statistics.MEAN];
+				bb[1] = stats[5].add(brightness(cHSB))[Statistics.SD];
+			}
 			if (mouseX >= x && mouseX <= x + STEP_X)
 			{
-				r[0] = (valsRGB[0][Statistics.MEAN] + m * r[0]) / l;
-				r[1] = (valsRGB[0][Statistics.SD] + m * r[1]) / l;
-				g[0] = (valsRGB[1][Statistics.MEAN] + m * g[0]) / l;
-				g[1] = (valsRGB[1][Statistics.SD] + m * g[1]) / l;
-				b[0] = (valsRGB[2][Statistics.MEAN] + m * b[0]) / l;
-				b[1] = (valsRGB[2][Statistics.SD] + m * b[1]) / l;
-
-				// System.out.printf("%03d:%03d:%03d\t%06x\n",red,green,blue,color);
-				// println();
 				System.out.printf("RGB: % 5.3f % 5.3f % 5.3f:% 5.3f % 5.3f % 5.3f\n SNR:% 5.3f % 5.3f % 5.3f\n", r[0], g[0], b[0], r[1], g[1], b[1], r[0] / r[1], g[0] / g[1], b[0]
 						/ b[1]);
 			}
 			if (mouseX >= x + 640 && mouseX <= x + STEP_X + 640)
 			{
-				h[0] = (valsHSB[0][Statistics.MEAN] + m * h[0]) / l;
-				h[1] = (valsHSB[0][Statistics.SD] + m * h[1]) / l;
-				s[0] = (valsHSB[1][Statistics.MEAN] + m * s[0]) / l;
-				s[1] = (valsHSB[1][Statistics.SD] + m * s[1]) / l;
-				bb[0] = (valsHSB[2][Statistics.MEAN] + m * bb[0]) / l;
-				bb[1] = (valsHSB[2][Statistics.SD] + m * bb[1]) / l;
-
-				// System.out.printf("%03d:%03d:%03d\t%06x\n",red,green,blue,color);
-				// println();
 				System.out.printf("HSB: % 5.3f % 5.3f % 5.3f:% 5.3f % 5.3f % 5.3f\n SNR:% 5.3f % 5.3f % 5.3f\n", h[0], s[0], bb[0], h[1], s[1], bb[1], h[0] / h[1], s[0] / s[1],
 						bb[0] / bb[1]);
 			}
+
 		}
 		textAndColors();
 	}
@@ -232,6 +234,8 @@ public class ReDec extends PApplet
 		popStyle();
 	}
 
+	private String	colorString;
+
 	private void textAndColors()
 	{
 		int c = color(vals[1], vals[2], vals[3]);
@@ -250,6 +254,50 @@ public class ReDec extends PApplet
 		text(saturation(color(vals[1], vals[2], vals[3])), 400, 272);
 		text(brightness(color(vals[1], vals[2], vals[3])), 400, 288);
 		popStyle();
+		String s;
+		switch (colorMode)
+		{
+		case 0x0:
+			s = "Silver";
+			break;
+		case 0x1:
+			s = "Gold";
+			break;
+		case 0x2:
+			s = "Black";
+			break;
+		case 0x3:
+			s = "Brown";
+			break;
+		case 0x4:
+			s = "Red";
+			break;
+		case 0x5:
+			s = "Orange";
+			break;
+		case 0x6:
+			s = "Yellow";
+			break;
+		case 0x7:
+			s = "Green";
+			break;
+		case 0x8:
+			s = "Blue";
+			break;
+		case 0x9:
+			s = "Violet";
+			break;
+		case 0xa:
+			s = "Grey";
+			break;
+		case 0xb:
+			s = "White";
+			break;
+		default:
+			s = "Invalid Mode";
+		}
+		colorString = s;
+		text(s,320,100);
 	}
 
 	public void mousePressed()
@@ -271,6 +319,8 @@ public class ReDec extends PApplet
 	public void stop()
 	{
 		cam.stop();
+		pr.flush();
+		pr.close();
 		super.stop();
 	}
 
@@ -281,6 +331,40 @@ public class ReDec extends PApplet
 		stroke(0);
 		fill(c.color());
 		rect(320 + 10 * index++, 240, 10, 10);
+	}
+
+	int	mode	= 0;
+
+	@Override
+	public void keyPressed()
+	{
+		super.keyPressed();
+		if (key == CODED)
+		{
+			switch (keyCode)
+			{
+			case ENTER:
+			case RETURN:
+				pr.printf("%s\tHSB% 5.2f % 5.2f % 5.2f :% 5.2f % 5.2f % 5.2f\n", colorString, h[0], s[0], bb[0], h[1], s[1], bb[1]);
+				pr.printf("\tRGB% 5.2f % 5.2f % 5.2f :% 5.2f % 5.2f % 5.2f\n", r[0], g[0], b[0], r[1], g[1], b[1]);
+				break;
+			case DOWN:
+			case RIGHT:
+				colorMode = (colorMode + 1) % 12;
+				break;
+			case LEFT:
+			case UP:
+				if (colorMode == 0)
+				{
+					colorMode = 11;
+
+				} else
+				{
+					colorMode--;
+				}
+				break;
+			}
+		}
 	}
 
 }
