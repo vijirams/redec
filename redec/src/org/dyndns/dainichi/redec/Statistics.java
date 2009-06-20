@@ -9,11 +9,6 @@ public class Statistics
 	private ReDec			parent;
 	public int[]			bins;
 	public Float[]			sample;
-	public float			sd;
-	public float			max;
-	public float			mean;
-	public float			median;
-	public float[]			lims;
 
 	public static final int	HUE			= 0;
 	public static final int	SATURATION	= 1;
@@ -27,6 +22,10 @@ public class Statistics
 	public static final int	MAX			= 3;
 	public static final int	BINS		= 4;
 	public static final int	BINS_MAX	= 5;
+	public Statistics(ReDec theParent)
+	{
+		parent = theParent;
+	}
 
 	public static float[][] process(ReDec parent, PImage data)
 	{
@@ -153,7 +152,7 @@ public class Statistics
 				switch (colorBand)
 				{
 				case HUE:
-					localVal = Color.difference(parent.hue(pixel),256 ,256 );
+					localVal = Color.difference(parent.hue(pixel), 256, 256);
 					break;
 				case SATURATION:
 					localVal = parent.saturation(pixel);
@@ -201,8 +200,71 @@ public class Statistics
 		binsMax = ReDec.max(bins);
 		max = ReDec.max(values);
 		parent.popStyle();
-		
-		
-		return ReDec.concat(new float[] { mean, median, sd,  max, binsMax }, bins);
+
+		return ReDec.concat(new float[] { mean, median, sd, max, binsMax }, bins);
+	}
+
+	public void zero()
+	{
+		sum = 0;
+		sumOfSquares = 0;
+		mean = 0;
+		sd = 0;
+		max = 0;
+		n = 0;
+
+	}
+
+	public float	sum				= 0;
+	public float	sumOfSquares	= 0;
+	public float	mean			= 0;
+	float			sd				= 0;
+	float			max				= 0;
+	float			n				= 0;
+
+	public float[] add(int pixel, int colorBand)
+	{
+		float localVal;
+		if (pixel < 0)
+		{
+			switch (colorBand)
+			{
+			case HUE:
+				localVal = Color.difference(parent.hue(pixel), 256, 256);
+				break;
+			case SATURATION:
+				localVal = parent.saturation(pixel);
+				break;
+			case BRIGHTNESS:
+				localVal = parent.brightness(pixel);
+				break;
+			case RED:
+				localVal = parent.red(pixel);
+				break;
+			case GREEN:
+				localVal = parent.green(pixel);
+				break;
+			case BLUE:
+				localVal = parent.blue(pixel);
+				break;
+			default:
+				localVal = Float.NaN;
+			}
+			n += 1;
+			sum += localVal;
+			sumOfSquares += ReDec.sq(localVal);
+			mean = sum / n;
+			bins[(int) localVal]++;
+			if (n > 1)
+			{
+
+				if (colorBand == HUE)
+					sd = ReDec.sqrt(Color.difference(sumOfSquares, ReDec.sq(sum) / n, 256) / (n - 1));
+				else
+					sd = ReDec.sqrt((sumOfSquares - ReDec.sq(sum) / n) / (n - 1));
+			}
+		}
+
+		return new float[] { mean, Float.NaN, sd, Float.NaN, Float.NaN };
 	}
 }
