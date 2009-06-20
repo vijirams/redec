@@ -11,7 +11,6 @@ public class ReDec extends PApplet
 	private final int		CAM_WIDTH	= 320;
 	private final int		CAM_HEIGHT	= 240;
 	private final int		STEP_X		= 5;
-	private final int		STEP_Y		= 8;
 	private PImage			bg1			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	private PImage			bg2			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	private PFont			font;
