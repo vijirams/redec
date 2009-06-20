@@ -22,6 +22,7 @@ public class Statistics
 	public static final int	MAX			= 3;
 	public static final int	BINS		= 4;
 	public static final int	BINS_MAX	= 5;
+
 	public Statistics(ReDec theParent)
 	{
 		parent = theParent;
@@ -152,7 +153,7 @@ public class Statistics
 				switch (colorBand)
 				{
 				case HUE:
-					localVal = Color.difference(parent.hue(pixel), 256, 256);
+					localVal = parent.hue(pixel);
 					break;
 				case SATURATION:
 					localVal = parent.saturation(pixel);
@@ -222,49 +223,16 @@ public class Statistics
 	float			max				= 0;
 	float			n				= 0;
 
-	public float[] add(int pixel, int colorBand)
+	public float[] add(float dp)
 	{
-		float localVal;
-		if (pixel < 0)
+		n += 1;
+		sum += dp;
+		sumOfSquares += ReDec.sq(dp);
+		mean = sum / n;
+		if (n > 1)
 		{
-			switch (colorBand)
-			{
-			case HUE:
-				localVal = Color.difference(parent.hue(pixel), 256, 256);
-				break;
-			case SATURATION:
-				localVal = parent.saturation(pixel);
-				break;
-			case BRIGHTNESS:
-				localVal = parent.brightness(pixel);
-				break;
-			case RED:
-				localVal = parent.red(pixel);
-				break;
-			case GREEN:
-				localVal = parent.green(pixel);
-				break;
-			case BLUE:
-				localVal = parent.blue(pixel);
-				break;
-			default:
-				localVal = Float.NaN;
-			}
-			n += 1;
-			sum += localVal;
-			sumOfSquares += ReDec.sq(localVal);
-			mean = sum / n;
-			bins[(int) localVal]++;
-			if (n > 1)
-			{
-
-				if (colorBand == HUE)
-					sd = ReDec.sqrt(Color.difference(sumOfSquares, ReDec.sq(sum) / n, 256) / (n - 1));
-				else
-					sd = ReDec.sqrt((sumOfSquares - ReDec.sq(sum) / n) / (n - 1));
-			}
+			sd = ReDec.sqrt((sumOfSquares - ReDec.sq(sum) / n) / (n - 1));
 		}
-
-		return new float[] { mean, Float.NaN, sd, Float.NaN, Float.NaN };
+		return new float[] { mean, Float.NaN, sd, Float.NaN, Float.NaN, Float.NaN, Float.NaN };
 	}
 }
