@@ -4,7 +4,9 @@ import java.io.PrintWriter;
 
 import processing.core.PApplet;
 import processing.core.PFont;
+import processing.core.PGraphics;
 import processing.core.PImage;
+import processing.xml.XMLElement;
 import JMyron.JMyron;
 
 public class ReDec extends PApplet
@@ -27,7 +29,7 @@ public class ReDec extends PApplet
 
 	// private Color bg = new Color(this, new float[] { 52.3f, 62.4f, 58.4f },
 	// new float[] { 2.02f, 1.68f, 1.96f });
-	int						colorMode	= HSB;
+	int						colorNumber	= HSB;
 	private Color			silver;
 	private Color			gold;
 	private Color			black;
@@ -41,40 +43,39 @@ public class ReDec extends PApplet
 	private Color			white;
 	private Color			grey;
 	private PrintWriter		pr;
+	private PGraphics		g1;
+	private PGraphics		g2;
+	private PGraphics		g3;
 
 	public void setup()
 	{
-		pr = createWriter("ColorLines.txt");
-		if (colorMode == RGB)
+		size(3 * 320, 3 * 240);
+		g1 = createGraphics(320, 240, P3D);
+		g2 = createGraphics(320, 240, P3D);
+		g3 = createGraphics(320, 240, P3D);
+		String[] temp = loadStrings("ColorLines.txt");
+		pr = createWriter("data/ColorLines.txt");
+		silver = new Color(this, "silver", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		gold = new Color(this, "gold", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		black = new Color(this, "black", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		brown = new Color(this, "brown", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		red = new Color(this, "red", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		orange = new Color(this, "orange", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		yellow = new Color(this, "yellow", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		green = new Color(this, "green", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		blue = new Color(this, "blue", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		violet = new Color(this, "violet", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		grey = new Color(this, "grey", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		white = new Color(this, "white", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		if (temp != null)
 		{
-			silver = new Color(this, new float[] { 176f, 193f, 190f }, new float[] { 33.7f, 32.7f, 31f });
-			gold = new Color(this, new float[] { 184f, 185f, 154f }, new float[] { 35f, 35f, 34f });
-			black = new Color(this, new float[] { 92f, 102f, 110f }, new float[] { 20f, 24.5f, 28.5f });
-			brown = new Color(this, new float[] { 113f, 114f, 112f }, new float[] { 15.2f, 17f, 20.4f });
-			red = new Color(this, new float[] { 185f, 95f, 95f }, new float[] { 21f, 15f, 14.5f });
-			orange = new Color(this, new float[] { 208.5f, 126.5f, 93.5f }, new float[] { 26.7f, 19.7f, 20.5f });
-			yellow = new Color(this, new float[] { 206.5f, 197.5f, 51f }, new float[] { 26f, 25.5f, 26.5f });
-			green = new Color(this, new float[] { 82.5f, 147.7f, 103.7f }, new float[] { 13.5f, 16.6f, 18.2f });
-			blue = new Color(this, new float[] { 84.2f, 116.7f, 191.7f }, new float[] { 17.6f, 21f, 23.3f });
-			violet = new Color(this, new float[] { 109f, 92f, 130f }, new float[] { 13.2f, 13.2f, 16.5f });
-			white = new Color(this, new float[] { 0f, 0f, 0f }, new float[] { 2.02f, 1.68f, 1.96f });
-			grey = new Color(this, new float[] { 138.1f, 160.7f, 166.2f }, new float[] { 20f, 23f, 24.5f });
-		} else
-		{
-			silver = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			gold = new Color(this, new float[] { 184f, 185f, 154f }, new float[] { 35f, 35f, 34f });
-			black = new Color(this, new float[] { 92f, 102f, 110f }, new float[] { 20f, 24.5f, 28.5f });
-			brown = new Color(this, new float[] { 113f, 114f, 112f }, new float[] { 15.2f, 17f, 20.4f });
-			red = new Color(this, new float[] { 185f, 95f, 95f }, new float[] { 21f, 15f, 14.5f });
-			orange = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			yellow = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			green = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			blue = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			violet = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			white = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
-			grey = new Color(this, new float[] { 52.3f, 62.4f, 58.4f }, new float[] { 2.02f, 1.68f, 1.96f });
+
+			for (String s : temp)
+				pr.println(s);
 		}
-		size(3 * 320, 240 + 1 * 240);
+
+		root = new XMLElement(this, "colors.xml");
+		parseXml(root);
 		colorMode(RGB, 255, 255, 255, 255);
 		background(0xff7f7f7f);
 
@@ -108,7 +109,7 @@ public class ReDec extends PApplet
 
 	public void draw()
 	{
-		colorMode(colorMode, 255);
+		colorMode(colorNumber, 255);
 		fill(color(0xff000000));
 		stroke(color(0xff000000));
 		rect(0, 0, width, height);
@@ -116,6 +117,12 @@ public class ReDec extends PApplet
 		Handle.processSliders(handles, vals);
 		cam.update();// update the camera view
 		int[] img = cam.image(); // get the normal image of the camera
+		fillOffscreen(g1);
+		fillOffscreen(g2);
+		fillOffscreen(g3);
+		image(g1, 0, 480);
+		image(g2, 320, 480);
+		image(g3, 640, 480);
 		loadPixels();
 		bg1.loadPixels();
 		processPixels(img, bg1.pixels);
@@ -210,10 +217,54 @@ public class ReDec extends PApplet
 		textAndColors();
 	}
 
+	public void fillOffscreen(PGraphics device)
+	{
+		if (frameCount < 2)
+		{
+
+			device.camera(160, 300, 300, 160, 120, 128, 0, 0, -1);
+
+		}
+		device.background(0xff000000);
+		device.ambient(255, 255, 255);
+		device.beginDraw();
+		device.colorMode(HSB, 255);
+		int dev = (device.equals(g3)) ? 3 : (device.equals(g2)) ? 2 : (device.equals(g1)) ? 1 : 0;
+
+		for (int y = 0; y < CAM_HEIGHT; y++)
+		{
+			for (int x = 0; x < CAM_WIDTH; x++)
+			{
+				int pixel = bg1.pixels[x + y * CAM_WIDTH];
+				device.stroke(pixel);
+				switch (dev)
+				{
+				case 1:
+					device.point(x, y, hue(pixel));
+					break;
+				case 2:
+					device.point(x, y, saturation(pixel));
+					break;
+				case 3:
+					device.point(x, y, brightness(pixel));
+					break;
+				}
+			}
+		}
+
+		device.stroke(0xffff0000);
+		device.line(0, 0, 0, 1000, 0, 0);
+		device.stroke(0xff00ff00);
+		device.line(0, 0, 0, 0, 1000, 0);
+		device.stroke(0xff0000ff);
+		device.line(0, 0, 0, 0, 0, 1000);
+		device.endDraw();
+	}
+
 	public void processPixels(int[] src, int[] dest)
 	{
 		pushStyle();
-		colorMode(RGB, 255);
+		colorMode(HSB, 255);
 		for (int y = 0; y < CAM_HEIGHT; y++)
 		{
 			for (int x = 0; x < CAM_WIDTH; x++)
@@ -221,12 +272,13 @@ public class ReDec extends PApplet
 				int srci = x + y * CAM_WIDTH;
 				int desti = x + y * CAM_WIDTH;
 				int c = src[srci];
-				a = red(c) + green(c) + blue(c) - 260;
+				a = brightness(c) - 110;
+				// a = red(c) + green(c) + blue(c) - 260;
 				// a = (bg.isInRange(new float[]{red(c),green(c),blue(c)}))?
 				// 0:1;
 				// a = 1;
 				if (a >= 0)
-					dest[desti] = src[srci];
+					dest[desti] = c;
 				else
 					dest[desti] = 0;
 			}
@@ -255,7 +307,7 @@ public class ReDec extends PApplet
 		text(brightness(color(vals[1], vals[2], vals[3])), 400, 288);
 		popStyle();
 		String s;
-		switch (colorMode)
+		switch (colorNumber)
 		{
 		case 0x0:
 			s = "Silver";
@@ -297,11 +349,12 @@ public class ReDec extends PApplet
 			s = "Invalid Mode";
 		}
 		colorString = s;
-		text(s,320,100);
+		text(s, 320, 100);
 	}
 
 	public void mousePressed()
 	{
+		super.mousePressed();
 		if (mouseButton == RIGHT)
 			cam.settings();// click the window to get the settings
 		else if (mouseButton == LEFT)
@@ -339,32 +392,118 @@ public class ReDec extends PApplet
 	public void keyPressed()
 	{
 		super.keyPressed();
-		if (key == CODED)
+		if (key == CODED && keyPressed)
 		{
 			switch (keyCode)
 			{
-			case ENTER:
-			case RETURN:
-				pr.printf("%s\tHSB% 5.2f % 5.2f % 5.2f :% 5.2f % 5.2f % 5.2f\n", colorString, h[0], s[0], bb[0], h[1], s[1], bb[1]);
-				pr.printf("\tRGB% 5.2f % 5.2f % 5.2f :% 5.2f % 5.2f % 5.2f\n", r[0], g[0], b[0], r[1], g[1], b[1]);
-				break;
 			case DOWN:
 			case RIGHT:
-				colorMode = (colorMode + 1) % 12;
+				colorNumber = (colorNumber + 1) % 12;
 				break;
 			case LEFT:
 			case UP:
-				if (colorMode == 0)
+				if (colorNumber == 0)
 				{
-					colorMode = 11;
+					colorNumber = 11;
 
 				} else
 				{
-					colorMode--;
+					colorNumber--;
 				}
 				break;
 			}
+		} else
+		{
+			switch (key)
+			{
+			case ENTER:
+			case RETURN:
+				switch (colorNumber)
+				{
+				case 0x0:
+					local = silver;
+					break;
+				case 0x1:
+					local = gold;
+					break;
+				case 0x2:
+					local = black;
+					break;
+				case 0x3:
+					local = brown;
+					break;
+				case 0x4:
+					local = red;
+					break;
+				case 0x5:
+					local = orange;
+					break;
+				case 0x6:
+					local = yellow;
+					break;
+				case 0x7:
+					local = green;
+					break;
+				case 0x8:
+					local = blue;
+					break;
+				case 0x9:
+					local = violet;
+					break;
+				case 0xa:
+					local = grey;
+					break;
+				case 0xb:
+					local = white;
+					break;
+				default:
+					local = null;
+				}
+				saveColor(local);
+				pr.printf("%s\tHSB% 5.2f\t% 5.2f\t% 5.2f:% 5.2f\t% 5.2f\t% 5.2f\r\n", colorString, h[0], s[0], bb[0], h[1], s[1], bb[1]);
+				pr.printf("%s\tRGB% 5.2f\t% 5.2f\t% 5.2f :% 5.2f % 5.2f % 5.2f\r\n", colorString, r[0], g[0], b[0], r[1], g[1], b[1]);
+				break;
+			}
 		}
+	}
+
+	Color	local;
+
+	private void parseXml(XMLElement root)
+	{
+		silver.loadFromXML(root.getChild("silver"));
+		gold.loadFromXML(root.getChild("gold"));
+		black.loadFromXML(root.getChild("black"));
+		brown.loadFromXML(root.getChild("brown"));
+		red.loadFromXML(root.getChild("red"));
+		orange.loadFromXML(root.getChild("orange"));
+		yellow.loadFromXML(root.getChild("yellow"));
+		green.loadFromXML(root.getChild("green"));
+		blue.loadFromXML(root.getChild("blue"));
+		violet.loadFromXML(root.getChild("violet"));
+		grey.loadFromXML(root.getChild("grey"));
+		white.loadFromXML(root.getChild("white"));
+	}
+
+	XMLElement	root;
+
+	private void saveColor(Color c)
+	{
+		c.hue = h[0];
+		c.saturation = s[0];
+		c.brightness = bb[0];
+		c.red = r[0];
+		c.green = g[0];
+		c.blue = b[0];
+		c.sd[0] = h[1];
+		c.sd[1] = s[1];
+		c.sd[2] = bb[1];
+		c.sd[3] = r[1];
+		c.sd[4] = g[1];
+		c.sd[5] = b[1];
+		XMLElement x = root.getChild(c.name);
+		x = c.getXML();
+		System.err.println(x.toString(true));
 	}
 
 }
