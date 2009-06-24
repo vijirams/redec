@@ -1,21 +1,31 @@
 package org.dyndns.dainichi.redec;
 
 import processing.core.PApplet;
+import processing.xml.XMLElement;
 
 public class Color
 {
-	private ReDec	parent;
-	private float	red;
-	private float	green;
-	private float	blue;
-	private float[]	sd;
+	public ReDec	parent;
+	
+	public String	name;
+	public float	hue;
+	public float	saturation;
+	public float	brightness;
+	public float	red;
+	public float	green;
+	public float	blue;
+	public float[]	sd;
 
-	public Color(ReDec theParent, float[] color, float[] sd)
+	public Color(ReDec theParent,String name, float[] color, float[] sd)
 	{
+		this.name = name;
 		parent = theParent;
-		red = color[0];
-		green = color[1];
-		blue = color[2];
+		hue = color[0];
+		saturation = color[1];
+		brightness = color[2];
+		red = color[3];
+		green = color[4];
+		blue = color[5];
 		this.sd = sd;
 	}
 
@@ -64,9 +74,76 @@ public class Color
 			return (ReDec.abs(difference(red, color[0], 256)) <= sd[0]) && (ReDec.abs(green - color[1]) <= sd[1]) && (ReDec.abs(blue - color[2]) <= sd[2]);
 	}
 
+	public boolean[] isInRange(Color color)
+	{
+
+		return new boolean[] {
+				(ReDec.abs(difference(hue, color.hue, 256)) <= sd[0]) && (ReDec.abs(saturation - color.saturation) <= sd[1]) && (ReDec.abs(brightness - color.brightness) <= sd[2]),
+				(ReDec.abs(red - color.red) <= sd[3]) && (ReDec.abs(green - color.green) <= sd[4]) && (ReDec.abs(blue - color.blue) <= sd[5]) };
+	}
+
 	public int color()
 	{
 		return parent.color(red, green, blue);
+	}
+	public XMLElement getXML()
+	{ 
+		//String namespace = "";
+		XMLElement values = new XMLElement();
+		XMLElement me = new XMLElement();
+		me.setName(name);
+		values.setName("HSB");
+		me.addChild(values);
+		values = new XMLElement();
+		values.setName("RGB");
+		me.addChild(values);
+		XMLElement hsb = me.getChild("HSB");
+		XMLElement rgb = me.getChild("RGB");
+		
+		values = new XMLElement();
+		values.setName("components");
+		values.setAttribute("a", Float.toString(hue));
+		values.setAttribute("b", Float.toString(saturation));
+		values.setAttribute("c", Float.toString(brightness));
+		hsb.addChild(values);
+		values = new XMLElement();
+		values.setName("error");
+		values.setAttribute("a", Float.toString(sd[0]));
+		values.setAttribute("b", Float.toString(sd[1]));
+		values.setAttribute("c", Float.toString(sd[2]));
+		hsb.addChild(values);
+		values = new XMLElement();
+		values.setName("components");
+		values.setAttribute("a", Float.toString(red));
+		values.setAttribute("b", Float.toString(green));
+		values.setAttribute("c", Float.toString(blue));
+		rgb.addChild(values);
+		values = new XMLElement();
+		values.setName("error");
+		values.setAttribute("a", Float.toString(sd[3]));
+		values.setAttribute("b", Float.toString(sd[4]));
+		values.setAttribute("c", Float.toString(sd[5]));
+		rgb.addChild(values);
+		return me;	
+	}
+	public void loadFromXML(XMLElement x){
+		//name = x.getName();
+		hue = x.getChild("HSB").getChild("components").getFloatAttribute("a");
+		saturation = x.getChild("HSB").getChild("components").getFloatAttribute("b");
+		brightness = x.getChild("HSB").getChild("components").getFloatAttribute("c");
+		sd[0] = x.getChild("HSB").getChild("error").getFloatAttribute("a");
+		sd[1] = x.getChild("HSB").getChild("error").getFloatAttribute("b");
+		sd[2] = x.getChild("HSB").getChild("error").getFloatAttribute("c");
+		
+		red = x.getChild("RGB").getChild("components").getFloatAttribute("a");
+		green = x.getChild("RGB").getChild("components").getFloatAttribute("b");
+		blue = x.getChild("RGB").getChild("components").getFloatAttribute("c");
+		sd[3] = x.getChild("RGB").getChild("error").getFloatAttribute("a");
+		sd[4] = x.getChild("RGB").getChild("error").getFloatAttribute("b");
+		sd[5] = x.getChild("RGB").getChild("error").getFloatAttribute("c");
+		
+		
+		
 	}
 
 }
