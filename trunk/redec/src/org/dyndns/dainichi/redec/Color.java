@@ -86,12 +86,13 @@ public class Color
 	{
 		return parent.color(red, green, blue);
 	}
-	public XMLElement getXML()
+	public XMLElement getXML(int id)
 	{ 
 		//String namespace = "";
 		XMLElement values = new XMLElement();
 		XMLElement me = new XMLElement();
 		me.setName(name);
+		me.setAttribute("id", Integer.toString(id));
 		values.setName("HSB");
 		me.addChild(values);
 		values = new XMLElement();

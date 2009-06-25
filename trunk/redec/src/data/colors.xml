@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><colors><silver>
+<?xml version="1.0" encoding="UTF-8"?><colors><silver id="0">
 	<HSB>
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
@@ -7,7 +7,7 @@
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
 	</RGB>
-	</silver><gold>
+	</silver><gold id="0">
 	<HSB>
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
@@ -16,7 +16,7 @@
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
 	</RGB>
-</gold><black>
+</gold><black id="0">
 	<HSB>
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
@@ -25,7 +25,7 @@
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
 	</RGB>
-</black><brown>
+</black><brown id="0">
 	<HSB>
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
@@ -34,7 +34,7 @@
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
 	</RGB>
-</brown><red>
+</brown><red id="0">
 	<HSB>
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
@@ -43,7 +43,7 @@
 		<components a="0.0" b="0.0" c="0.0"></components>
 		<error a="0.0" b="0.0" c="0.0"></error>
 	</RGB>
-</red><orange>
+</red><orange id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
@@ -52,7 +52,7 @@
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
     </RGB>
-</orange><yellow>
+</orange><yellow id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
@@ -61,7 +61,7 @@
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
     </RGB>
-</yellow><green>
+</yellow><green id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
@@ -70,7 +70,7 @@
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
     </RGB>
-</green><blue>
+</green><blue id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
@@ -79,7 +79,7 @@
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
     </RGB>
-</blue><violet>
+</blue><violet id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
@@ -88,7 +88,7 @@
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
     </RGB>
-</violet><grey>
+</violet><grey id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
@@ -97,7 +97,7 @@
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
     </RGB>
-</grey><white>
+</grey><white id="0">
     <HSB>
         <components a="0.0" b="0.0" c="0.0"></components>
         <error a="0.0" b="0.0" c="0.0"></error>
