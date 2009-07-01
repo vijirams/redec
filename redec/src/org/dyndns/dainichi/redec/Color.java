@@ -1,12 +1,11 @@
 package org.dyndns.dainichi.redec;
 
-import processing.core.PApplet;
 import processing.xml.XMLElement;
 
 public class Color
 {
 	public ReDec	parent;
-	
+
 	public String	name;
 	public float	hue;
 	public float	saturation;
@@ -31,17 +30,17 @@ public class Color
 
 	public static int alpha(int color)
 	{
-		return (color >> 24) & 0xff;
+		return color >> 24 & 0xff;
 	}
 
 	public static int red(int color)
 	{
-		return (color >> 16) & 0xff;
+		return color >> 16 & 0xff;
 	}
 
 	public static int green(int color)
 	{
-		return (color >> 8) & 0xff;
+		return color >> 8 & 0xff;
 	}
 
 	public static int blue(int color)
@@ -51,35 +50,40 @@ public class Color
 
 	public static int color(int a, int r, int g, int b)
 	{
-		return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
+		return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | b & 0xff;
 	}
 
 	public static float difference(float a, float b, float max)
 	{
 		float result = 0f;
 		if (a > b)
-			result = max - ((a + max - b) % max);
-		else if (b > a)
-			result = max - ((b + max - a) % max);
+		{
+			result = max - (a + max - b) % max;
+		} else if (b > a)
+		{
+			result = max - (b + max - a) % max;
+		}
 		if (result > max / 2)
-			result = (max) - result;
-		return (result);
+		{
+			result = max - result;
+		}
+		return result;
 	}
 
 	public boolean isInRange(float[] color, int colorMode)
 	{
 		if (colorMode == ReDec.RGB)
-			return (ReDec.abs(red - color[0]) <= sd[0]) && (ReDec.abs(green - color[1]) <= sd[1]) && (ReDec.abs(blue - color[2]) <= sd[2]);
+			return ReDec.abs(red - color[0]) <= sd[0] && ReDec.abs(green - color[1]) <= sd[1] && ReDec.abs(blue - color[2]) <= sd[2];
 		else
-			return (ReDec.abs(difference(red, color[0], 256)) <= sd[0]) && (ReDec.abs(green - color[1]) <= sd[1]) && (ReDec.abs(blue - color[2]) <= sd[2]);
+			return ReDec.abs(difference(red, color[0], 256)) <= sd[0] && ReDec.abs(green - color[1]) <= sd[1] && ReDec.abs(blue - color[2]) <= sd[2];
 	}
 
 	public boolean[] isInRange(Color color)
 	{
 
 		return new boolean[] {
-				(ReDec.abs(difference(hue, color.hue, 256)) <= sd[0]) && (ReDec.abs(saturation - color.saturation) <= sd[1]) && (ReDec.abs(brightness - color.brightness) <= sd[2]),
-				(ReDec.abs(red - color.red) <= sd[3]) && (ReDec.abs(green - color.green) <= sd[4]) && (ReDec.abs(blue - color.blue) <= sd[5]) };
+				ReDec.abs(difference(hue, color.hue, 256)) <= sd[0] && ReDec.abs(saturation - color.saturation) <= sd[1] && ReDec.abs(brightness - color.brightness) <= sd[2],
+				ReDec.abs(red - color.red) <= sd[3] && ReDec.abs(green - color.green) <= sd[4] && ReDec.abs(blue - color.blue) <= sd[5] };
 	}
 
 	public int color()
@@ -87,7 +91,7 @@ public class Color
 		return parent.color(red, green, blue);
 	}
 	public XMLElement getXML(int id)
-	{ 
+	{
 		//String namespace = "";
 		XMLElement values = new XMLElement();
 		XMLElement me = new XMLElement();
@@ -100,7 +104,7 @@ public class Color
 		me.addChild(values);
 		XMLElement hsb = me.getChild("HSB");
 		XMLElement rgb = me.getChild("RGB");
-		
+
 		values = new XMLElement();
 		values.setName("components");
 		values.setAttribute("a", Float.toString(hue));
@@ -125,7 +129,7 @@ public class Color
 		values.setAttribute("b", Float.toString(sd[4]));
 		values.setAttribute("c", Float.toString(sd[5]));
 		rgb.addChild(values);
-		return me;	
+		return me;
 	}
 	public void loadFromXML(XMLElement x){
 		//name = x.getName();
@@ -135,16 +139,33 @@ public class Color
 		sd[0] = x.getChild("HSB").getChild("error").getFloatAttribute("a");
 		sd[1] = x.getChild("HSB").getChild("error").getFloatAttribute("b");
 		sd[2] = x.getChild("HSB").getChild("error").getFloatAttribute("c");
-		
+
 		red = x.getChild("RGB").getChild("components").getFloatAttribute("a");
 		green = x.getChild("RGB").getChild("components").getFloatAttribute("b");
 		blue = x.getChild("RGB").getChild("components").getFloatAttribute("c");
 		sd[3] = x.getChild("RGB").getChild("error").getFloatAttribute("a");
 		sd[4] = x.getChild("RGB").getChild("error").getFloatAttribute("b");
 		sd[5] = x.getChild("RGB").getChild("error").getFloatAttribute("c");
-		
-		
-		
+
+
+
+	}
+	public boolean[] isSimilar(float[][] s)
+	{
+		boolean[] ret = {false,false};
+		if(ReDec.abs(hue - s[0][Statistics.MEAN])<= sd[0]*2)
+			if(ReDec.abs(saturation - s[1][Statistics.MEAN])<= sd[1]*2)
+				if(ReDec.abs(brightness - s[2][Statistics.MEAN])<= sd[2]*2)
+				{
+					ret[0] =  true;
+				}
+		if(ReDec.abs(red - s[3][Statistics.MEAN])<= sd[3]*2)
+			if(ReDec.abs(green - s[4][Statistics.MEAN])<= sd[4]*2)
+				if(ReDec.abs(blue - s[5][Statistics.MEAN])<= sd[5]*2)
+				{
+					ret[1] = true;
+				}
+		return ret;
 	}
 
 }
