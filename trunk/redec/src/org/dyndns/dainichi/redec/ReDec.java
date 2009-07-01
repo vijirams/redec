@@ -6,11 +6,13 @@ import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
+import processing.serial.Serial;
 import processing.xml.XMLElement;
 import JMyron.JMyron;
 
 public class ReDec extends PApplet
 {
+	Serial				serial;
 	Statistics[]		stats		= new Statistics[] { new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this),
 			new Statistics(this)	};
 	final boolean		DEBUG		= true;
@@ -80,7 +82,7 @@ public class ReDec extends PApplet
 				// alpha = c[1] - 110;
 				// alpha = red(c) + green(c) + blue(c) - 260;
 				// alpha = 1;
-				if (c[1] >= 0 && c[2] >= 110)
+				if (c[1] >= 0 && c[2] >= 0)
 				{
 					dest.pixels[desti] = color(c[0], c[1], c[2], c[3]);
 				} else
@@ -92,7 +94,7 @@ public class ReDec extends PApplet
 		popStyle();
 		dest.updatePixels();
 	}
-
+	byte[][] lights = new byte[][]{{(byte)255,0,0},{0,(byte)255,0},{0,0,(byte)255}};
 	@Override
 	public void draw()
 	{
@@ -101,6 +103,9 @@ public class ReDec extends PApplet
 		stroke(color(0xff000000));
 		rect(0, 0, width, height);
 		background(color(0xff7f7f7f));
+		//		serial.write(lights[frameCount%lights.length]);
+		serial.write(new byte[]{(byte)255,(byte)205,(byte)205});
+		serial.readString();
 		cam.update();// update the camera view
 		thread.paused = true;
 		synchronized (bg1){chromaKey(cam.retinaImage(), bg1);}
@@ -152,6 +157,11 @@ public class ReDec extends PApplet
 		{
 			switch (keyCode)
 			{
+			case ESC:
+				key = 0;
+				keyCode = 0;
+				_stop();
+				break;
 			case DOWN:
 			case RIGHT:
 				colorNumber = (colorNumber + 1) % 12;
@@ -172,6 +182,10 @@ public class ReDec extends PApplet
 		{
 			switch (key)
 			{
+			case ESC:
+				key = 0;
+				_stop();
+				break;
 			case 'a':
 			case 'A':
 				cam.adapt();
@@ -258,6 +272,10 @@ public class ReDec extends PApplet
 
 	public void processPixels()
 	{
+		boolean[][] colors = new boolean[12][2];
+		Resistor res1 = new Resistor(this);
+		Resistor res2 = new Resistor(this);
+
 		for (int x = 0; x < CAM_WIDTH; x += STEP_X)
 		{
 
@@ -265,22 +283,31 @@ public class ReDec extends PApplet
 			float[][] valsHSB;
 			valsRGB = new float[][] { Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.RED),
 					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.GREEN), Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.BLUE) };
-			valsHSB = new float[][] { Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.RED),
-					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.GREEN), Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.BLUE) };
-			/*
-			 * if (gold.isInRange(colorHSB, colorMode)) println(gold); if
-			 * (silver.isInRange(colorHSB, colorMode)) print(silver); if
-			 * (black.isInRange(colorHSB, colorMode)) print(black); if
-			 * (brown.isInRange(colorHSB, colorMode)) print(brown); if
-			 * (red.isInRange(colorRGB, colorMode)) print(red); if
-			 * (orange.isInRange(colorRGB, colorMode)) print(orange); if
-			 * (yellow.isInRange(colorHSB, colorMode)) print(yellow); if
-			 * (green.isInRange(colorHSB, colorMode)) print(green); if
-			 * (blue.isInRange(colorHSB, colorMode)) print(blue); if
-			 * (violet.isInRange(colorHSB, colorMode)) print(violet); if
-			 * (white.isInRange(colorRGB, colorMode)) print(white); if
-			 * (grey.isInRange(colorHSB, colorMode)) print(grey);
-			 */
+			valsHSB = new float[][] { Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.HUE),
+					Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.SATURATION), Statistics.process(this, bg2.get(x, 0, STEP_X, CAM_HEIGHT), Statistics.BRIGHTNESS) };
+			float[][] valss = new float[valsHSB.length+valsRGB.length][];
+			for(int i = 0; i < valss.length;i++)
+			{
+				if(i < valsHSB.length)
+				{
+					valss[i] = valsHSB[i];
+				} else
+				{
+					valss[i] = valsRGB[i%valsHSB.length];
+				}
+			}
+			colors[0] = silver.isSimilar(valss);
+			colors[1] = gold.isSimilar(valss);
+			colors[2] = black.isSimilar(valss);
+			colors[3] = brown.isSimilar(valss);
+			colors[4] = red.isSimilar(valss);
+			colors[5] = orange.isSimilar(valss);
+			colors[6] = yellow.isSimilar(valss);
+			colors[7] = green.isSimilar(valss);
+			colors[8] = blue.isSimilar(valss);
+			colors[9] = violet.isSimilar(valss);
+			colors[10] = grey.isSimilar(valss);
+			colors[11] = white.isSimilar(valss);
 			int hue = (int) valsHSB[0][Statistics.MEAN];
 			int sat = (int) valsHSB[1][Statistics.MEAN];
 			int brt = (int) valsHSB[2][Statistics.MEAN];
@@ -327,9 +354,24 @@ public class ReDec extends PApplet
 
 				hsb = new PrintfFormat("\nH:% 6.2f\t\u00b1% 6.2f\nS:% 6.2f\t\u00b1% 6.2f\nB:% 6.2f\t\u00b1% 6.2f")
 				.sprintf(new Object[] { hu[0], hu[1], st[0], st[1], bt[0], bt[1] });
-
 			}
+			int temp1 = 0;
+			int temp2 = 0;
+			for(int i = 0; i < 12;i++)
+			{
+				stroke(colors[i][0]? 0xffffffff:0xff000000);
+				point(x,i);
+				stroke(colors[i][1]? 0xffffffff:0xff000000);
+				point(x+1,i);
+				temp1 |= colors[i][0]?1<<i:0;
+				temp2 |= colors[i][1]?1<<i:0;
+			}
+			res1.add(temp1);
+			res2.add(temp2);
 		}
+		//println(res1.getValue());
+		//println(res2.getValue());
+
 	}
 
 	public void saveColor(Color c)
@@ -362,6 +404,7 @@ public class ReDec extends PApplet
 	public void setup()
 	{
 		size(3 * 320, 3 * 240);
+		serial = new Serial(this,"COM4",115200);
 		g1 = createGraphics(320, 240, P3D);
 		g2 = createGraphics(320, 240, P3D);
 		g3 = createGraphics(320, 240, P3D);
@@ -404,7 +447,7 @@ public class ReDec extends PApplet
 		cam = new JMyron();// make a new instance of the object
 		cam.start(CAM_WIDTH, CAM_HEIGHT);// start a capture at 320x240
 		cam.findGlobs(0);
-		cam.adaptivity(16F);
+		cam.adaptivity(128F);
 
 		font = loadFont("CenturySchoolbook-16.vlw");
 		textFont(font);
@@ -413,8 +456,7 @@ public class ReDec extends PApplet
 
 	}
 
-	@Override
-	public void stop()
+	public void _stop()
 	{
 		cam.stop();
 		pr.flush();
@@ -423,13 +465,17 @@ public class ReDec extends PApplet
 		p.print(root.toString(true));
 		p.flush();
 		p.close();
-		super.stop();
+		serial.write(new byte[]{0,0,0});
+		serial.stop();
+		exit();
 	}
+
 
 	public void textAndColors()
 	{
 		pushStyle();
 		colorMode(RGB, 255);
+		stroke(-1);
 
 		text(rgb, 400, 0);
 		text(hsb, 400, 3 * g.textLeading);
@@ -478,7 +524,7 @@ public class ReDec extends PApplet
 		}
 		colorString = s;
 		text(s, 320, 100);
-		text(frameRate,0,10);
+		//text(frameRate,0,10);
 		popStyle();
 	}
 

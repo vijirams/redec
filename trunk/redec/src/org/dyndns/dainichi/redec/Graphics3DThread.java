@@ -99,7 +99,13 @@ public class Graphics3DThread extends Thread
 		device.vertex(parent.pmouseX % parent.CAM_WIDTH, parent.CAM_HEIGHT, 256);
 		device.vertex(parent.pmouseX % parent.CAM_WIDTH, 0, 256);
 		device.endShape(parent.CLOSE);
-
+		device.stroke(-1);
+		device.beginShape();
+		device.vertex(parent.pmouseX % parent.CAM_WIDTH, 0, 0);
+		device.vertex(parent.pmouseX % parent.CAM_WIDTH, parent.CAM_HEIGHT, 0);
+		device.vertex(parent.pmouseX % parent.CAM_WIDTH, parent.CAM_HEIGHT, 256);
+		device.vertex(parent.pmouseX % parent.CAM_WIDTH, 0, 256);
+		device.endShape(parent.CLOSE);
 		device.stroke(0xffff0000);
 		device.line(0, 0, 0, 1000, 0, 0);
 		device.stroke(0xff00ff00);
