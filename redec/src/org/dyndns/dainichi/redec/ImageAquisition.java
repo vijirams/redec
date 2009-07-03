@@ -4,7 +4,7 @@ import JMyron.JMyron;
 
 public class ImageAquisition extends Thread
 {
-	private static final int FRAMES = 3;
+	private static final int FRAMES = 1;
 	private int index;
 	boolean run;
 	private int[][] images;
@@ -14,7 +14,7 @@ public class ImageAquisition extends Thread
 	//			{255,255,0},
 	//			{0,255,255},
 	//			{255,0,255}};
-	private int val = 5;
+	private int val = 10;
 	private int[][] lighting = {
 			{val,val,val},
 			{val,val,val},
@@ -57,11 +57,12 @@ public class ImageAquisition extends Thread
 				}
 			}
 			cam.update();
-			yield();
+			//yield();
 			lights.set(lighting[index]);
 			cam.cameraImageCopy(images[index]);
-			yield();
+			//yield();
 			index = (index+1)% FRAMES;
+
 		}
 		lights.run = false;
 		try

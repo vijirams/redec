@@ -1,7 +1,5 @@
 package org.dyndns.dainichi.redec;
 
-import java.util.Arrays;
-
 import processing.serial.Serial;
 
 public class LightRing extends Thread
@@ -47,6 +45,7 @@ public class LightRing extends Thread
 			serial.readString();
 			pause = true;
 
+
 		}
 		serial.write(0);
 		serial.write(0);
@@ -65,8 +64,6 @@ public class LightRing extends Thread
 	@Override
 	public synchronized void start()
 	{
-		// TODO Auto-generated method stub
-		System.out.println(Arrays.toString(serial.list()));
 		run = true;
 		super.start();
 	}

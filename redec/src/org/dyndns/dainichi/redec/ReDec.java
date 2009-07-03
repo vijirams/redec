@@ -1,5 +1,6 @@
 package org.dyndns.dainichi.redec;
 
+import java.io.File;
 import java.io.PrintWriter;
 
 import processing.core.PApplet;
@@ -10,6 +11,7 @@ import processing.xml.XMLElement;
 import JMyron.JMyron;
 
 public class ReDec extends PApplet {
+
 	final int				CAM_HEIGHT	= 240;
 	final int				CAM_WIDTH	= 320;
 	PImage					bg1			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
@@ -74,16 +76,14 @@ public class ReDec extends PApplet {
 
 	public void _stop()
 	{
-		pr.flush();
-		pr.close();
-		PrintWriter p = createWriter("data/colors2.xml");
-		p.print(root.toString(true));
-		p.flush();
-		p.close();
 		img.run = false;
 		try {
 			img.join();
 		} catch (InterruptedException e) {}
+		PrintWriter pr = createWriter(colorsXml);
+		pr.print(root.toString(true));
+		pr.flush();
+		pr.close();
 		exit();
 	}
 
@@ -123,7 +123,7 @@ public class ReDec extends PApplet {
 //			thread5.start();
 //			thread6.start();
 //		}
-		colorMode(colorNumber, 255);
+		colorMode(RGB, 255);
 		fill(color(0xff000000));
 		stroke(color(0xff000000));
 		rect(0, 0, width, height);
@@ -254,8 +254,6 @@ public class ReDec extends PApplet {
 					local = null;
 				}
 				saveColor(local);
-				pr.printf("%s\tHSB% 5.2f\t% 5.2f\t% 5.2f:% 5.2f\t% 5.2f\t% 5.2f\r\n", colorString, hu[0], st[0], bt[0], hu[1], st[1], bt[1]);
-				pr.printf("%s\tRGB% 5.2f\t% 5.2f\t% 5.2f :% 5.2f % 5.2f % 5.2f\r\n", colorString, rd[0], gn[0], bu[0], rd[1], gn[1], bu[1]);
 				break;
 			}
 		}
@@ -401,29 +399,22 @@ public class ReDec extends PApplet {
 		c.sd[3] = rd[1];
 		c.sd[4] = gn[1];
 		c.sd[5] = bu[1];
-		XMLElement[] x = root.getChildren(c.name);
-		int max = 0;
-		// float avg;
-		for (XMLElement e : x) {
-			max = max(max, e.getIntAttribute("id"));
-		}
+		XMLElement x = root.getChild(c.name);
+		root.removeChild(root.getChild(c.name));
+		root.addChild(c.getXML(x.getIntAttribute("id")));
+		System.out.println(root.getChild(c.name));
 
-		root.addChild(c.getXML(max + 1));
-		System.out.println(root.toString(true));
 	}
+	File projectPath;
+	String colorsXml;
 
 	@Override
 	public void setup()
 	{
-		size(3 * CAM_WIDTH, 3 * CAM_HEIGHT);
 
-		g1 = createGraphics(CAM_WIDTH, CAM_HEIGHT, P3D);
-		g2 = createGraphics(CAM_WIDTH, CAM_HEIGHT, P3D);
-		g3 = createGraphics(CAM_WIDTH, CAM_HEIGHT, P3D);
-		g4 = createGraphics(CAM_WIDTH, CAM_HEIGHT, P3D);
-		g5 = createGraphics(CAM_WIDTH, CAM_HEIGHT, P3D);
-		g6 = createGraphics(CAM_WIDTH, CAM_HEIGHT, P3D);
-		i1 = new AveragedImage(this, CAM_WIDTH, CAM_HEIGHT, 8);
+		size(3 * CAM_WIDTH, 3 * CAM_HEIGHT);
+		projectPath = sketchFile("").getParentFile();
+		colorsXml = projectPath.getPath()+"/colors.xml";
 		silver = new Color(this, "silver", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
 		gold = new Color(this, "gold", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
 		black = new Color(this, "black", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
@@ -437,7 +428,7 @@ public class ReDec extends PApplet {
 		grey = new Color(this, "grey", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
 		white = new Color(this, "white", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
 
-		root = new XMLElement(this, "../colors.xml");
+		root = new XMLElement(this, colorsXml);
 		parseXml(root);
 		colorMode(RGB, 255, 255, 255, 255);
 		background(0xff7f7f7f);
@@ -454,6 +445,8 @@ public class ReDec extends PApplet {
 		img = new ImageAquisition(this, CAM_WIDTH, CAM_HEIGHT);
 		img.start();
 		// thread.start();
+
+
 
 	}
 
