@@ -82,8 +82,8 @@ public class Color
 	{
 
 		return new boolean[] {
-				ReDec.abs(difference(hue, color.hue, 256)) <= sd[0] && ReDec.abs(saturation - color.saturation) <= sd[1] && ReDec.abs(brightness - color.brightness) <= sd[2],
-				ReDec.abs(red - color.red) <= sd[3] && ReDec.abs(green - color.green) <= sd[4] && ReDec.abs(blue - color.blue) <= sd[5] };
+				ReDec.abs(difference(hue, color.hue, 256)) <= sd[0]*2 && ReDec.abs(saturation - color.saturation) <= sd[1]*2 && ReDec.abs(brightness - color.brightness) <= sd[2]*2,
+				ReDec.abs(red - color.red) <= sd[3]*2 && ReDec.abs(green - color.green) <= sd[4]*2 && ReDec.abs(blue - color.blue) <= sd[5]*2 };
 	}
 
 	public int color()

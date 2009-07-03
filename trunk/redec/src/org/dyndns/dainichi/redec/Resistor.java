@@ -8,11 +8,12 @@ public class Resistor
 	private ReDec	parent;
 	private int bits = 0;
 	private int prevBits = 0;
-
+	Color t = new Color(parent,"bg",new float[]{0,0,0,0,0,0},new float[]{0,0,0,0,0,0});
 	public Resistor(ReDec parent)
 	{
 		this.parent = parent;
-		stripes = new Color[4];
+
+		stripes = new Color[]{t,t,t,t};
 	}
 	public void add(int c)
 	{
@@ -27,35 +28,38 @@ public class Resistor
 	{
 		if(Integer.bitCount(prevBits) ==1)
 		{
+			stripeIndex++;
 			if(stripeIndex>=stripes.length)
 			{
-				ReDec.expand(stripes);
+				stripes = (Color[]) ReDec.expand(stripes);
 			}
 
-			stripes[stripeIndex++]=getColor(stripeIndex);
+			stripes[stripeIndex]=getColor(stripeIndex-1);
 		}
 
 	}
-	char OHM = '\u03A9';
+	static char OHM = '\u03A9';
 	private static final PrintfFormat[] pf = new PrintfFormat[]{
-		new PrintfFormat("0.%d%d\u03A9"),
-		new PrintfFormat("%d.%d\u03A9"),
-		new PrintfFormat("%d%d\u03A9"),
-		new PrintfFormat("%d.%d0\u03A9"),
-		new PrintfFormat("%d.%dK\u03A9"),
-		new PrintfFormat("%d%dK\u03A9"),
-		new PrintfFormat("%d%d0K\u03A9"),
-		new PrintfFormat("%d.%dM\u03A9"),
-		new PrintfFormat("%d%dM\u03A9"),
-		new PrintfFormat("%d%d0M\u03A9"),
-		new PrintfFormat("%d.%dG\u03A9"),
-		new PrintfFormat("%d%dG\u03A9")};
+		new PrintfFormat("0.%d%d%c"),
+		new PrintfFormat("%d.%d%c"),
+		new PrintfFormat("%d%d%c"),
+		new PrintfFormat("%d.%d0%c"),
+		new PrintfFormat("%d.%dK%c"),
+		new PrintfFormat("%d%dK%c"),
+		new PrintfFormat("%d%d0K%c"),
+		new PrintfFormat("%d.%dM%c"),
+		new PrintfFormat("%d%dM%c"),
+		new PrintfFormat("%d%d0M%c"),
+		new PrintfFormat("%d.%dG%c"),
+		new PrintfFormat("%d%dG%c"),
+		new PrintfFormat("?"+OHM)};
 	public String getValue()
 	{
-		return pf[getIndex(stripes[2])+2].sprintf(new Object[]{getIndex(stripes[0]),getIndex(stripes[1])});
+		return pf[getIndex(stripes[2])+2].sprintf(new Object[]{getIndex(stripes[0]),getIndex(stripes[1]),OHM});
 	}
 	private int getIndex(Color c)
 	{
+
 		if (c.equals(parent.silver))
 			return -2;
 		if (c.equals(parent.gold))
@@ -80,7 +84,7 @@ public class Resistor
 			return 8;
 		if (c.equals(parent.white))
 			return 9;
-		return Integer.MAX_VALUE;
+		return 10;
 	}
 	private Color getColor(int index)
 	{
@@ -97,8 +101,9 @@ public class Resistor
 		case 6: return parent.blue;
 		case 7: return parent.violet;
 		case 8: return parent.grey;
-		case 9: return parent.white;
+		case 9: 		return parent.white;
+
 		}
-		return null;
+		return t;
 	}
 }
