@@ -42,7 +42,7 @@ public class ReDec extends PApplet {
 	Color					grey;
 	String					hsb			= "";
 	float[]					hu			= new float[] { 0, 0 };
-	AveragedImage			i1;
+
 	private ImageAquisition	img;
 	Color					local;
 	Color					orange;
@@ -57,7 +57,7 @@ public class ReDec extends PApplet {
 	float[]					st			= new float[] { 0, 0 };
 	Statistics[]			stats		= new Statistics[] { new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this),
 			new Statistics(this)		};
-	final int				STEP_X		= 4;
+	final int				STEP_X		= 2;
 	int						test		= 0x78fe5a30;
 	Graphics3DThread		thread1;
 	Graphics3DThread		thread2;
@@ -73,6 +73,7 @@ public class ReDec extends PApplet {
 	Color					white;
 
 	Color					yellow;
+	boolean					freeze;
 
 	public void _stop()
 	{
@@ -101,7 +102,9 @@ public class ReDec extends PApplet {
 				// alpha = c[1] - 110;
 				// alpha = red(c) + green(c) + blue(c) - 260;
 				// alpha = 1;
-				if (true) {// c[2] > 50) {
+				if (
+				// c[2] > 64) {
+				true) {
 					dest.pixels[desti] = color(c[0], c[1], c[2], c[3]);
 				} else {
 					dest.pixels[desti] = 0;
@@ -112,65 +115,64 @@ public class ReDec extends PApplet {
 		dest.updatePixels();
 	}
 
+	PImage	i1	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
+	PImage	i2	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
+	PImage	i3	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
+
 	@Override
 	public void draw()
 	{
-//		if (frameCount == 2) {
-//			thread1.start();
-//			thread2.start();
-//			thread3.start();
-//			thread4.start();
-//			thread5.start();
-//			thread6.start();
-//		}
+		// if (frameCount == 2) {
+		// thread1.start();
+		// thread2.start();
+		// thread3.start();
+		// thread4.start();
+		// thread5.start();
+		// thread6.start();
+		// }
 		colorMode(RGB, 255);
 		fill(color(0xff000000));
 		stroke(color(0xff000000));
 		rect(0, 0, width, height);
 		background(color(0xff7f7f7f));
 		img.pause();
-		chromaKey(img.getImages()[0], bg1);
-		image(bg1, 0, 0);
+		chromaKey(img.getImage(0), i1);
+		chromaKey(img.getImage(1), i2);
+		chromaKey(img.getImage(2), i3);
 		img.unpause();
+		//image(i1, 0, 0);
+		//image(i2, CAM_WIDTH, 0);
+		//image(i3, 2 * CAM_WIDTH, 0);
+		PImage a = new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
+		a.loadPixels();
+		i1.loadPixels();
+		i2.loadPixels();
+		i3.loadPixels();
+		//for (int i = 0; i < a.pixels.length; i++) {
+//			int red = Color.red(i1.pixels[i]) + Color.red(i2.pixels[i]) + Color.red(i3.pixels[i]);
+//			red /= 3;
+//			int green = Color.green(i1.pixels[i]) + Color.green(i2.pixels[i]) + Color.green(i3.pixels[i]);
+//			green /= 3;
+//			int blue = Color.blue(i1.pixels[i]) + Color.blue(i2.pixels[i]) + Color.blue(i3.pixels[i]);
+//			blue /= 3;
+//			a.pixels[i] = Color.color(255, red, green, blue);
 
-		synchronized (bg2) {
-			System.arraycopy(bg1.pixels, 0, bg2.pixels, 0, CAM_HEIGHT * CAM_WIDTH);
-		}
-		bg1.updatePixels();
-		//image(bg2, CAM_WIDTH * 2, 0);
+		//}
+		a.updatePixels();
+		image(i1,0,CAM_HEIGHT);
+		bg2 = i1.get();
+		// image(bg2, CAM_WIDTH * 2, 0);
 
-//		image(g1, 0, 240);
-//		image(g2, 320, 240);
-//		image(g3, 640, 240);
-//		image(g4, 0, 480);
-//		image(g5, 320, 480);
-//		image(g6, 640, 480);
-		loadPixels();
+		// image(g1, 0, 240);
+		// image(g2, 320, 240);
+		// image(g3, 640, 240);
+		// image(g4, 0, 480);
+		// image(g5, 320, 480);
+		// image(g6, 640, 480);
+		// loadPixels();
 
 		processPixels();
 		textAndColors();
-	}
-
-	private void threadPause()
-	{
-		thread1.pause();
-		thread2.pause();
-		thread3.pause();
-		thread4.pause();
-		thread5.pause();
-		thread6.pause();
-
-	}
-
-	private void threadUnPause()
-	{
-
-		thread1.unpause();
-		thread2.unpause();
-		thread3.unpause();
-		thread4.unpause();
-		thread5.unpause();
-		thread6.unpause();
 	}
 
 	@Override
@@ -210,6 +212,13 @@ public class ReDec extends PApplet {
 			case 'A':
 				cam.adapt();
 				break;
+			case 's':
+			case 'S':
+				bg1.save(projectPath.getAbsolutePath() + "/" + System.currentTimeMillis() + ".png");
+				break;
+			case 'p':
+			case 'P':
+				freeze = !freeze;
 			case ENTER:
 			case RETURN:
 				switch (colorNumber)
@@ -285,8 +294,10 @@ public class ReDec extends PApplet {
 		grey.loadFromXML(root.getChild("grey"));
 		white.loadFromXML(root.getChild("white"));
 	}
-	Resistor res1;// = new Resistor(this);
-	Resistor res2;// = new Resistor(this);
+
+	Resistor	res1;	// = new Resistor(this);
+	Resistor	res2;	// = new Resistor(this);
+
 	public void processPixels()
 	{
 		boolean[][] colors = new boolean[12][2];
@@ -325,12 +336,12 @@ public class ReDec extends PApplet {
 			int hue = (int) valsHSB[0][Statistics.MEAN];
 			int sat = (int) valsHSB[1][Statistics.MEAN];
 			int brt = (int) valsHSB[2][Statistics.MEAN];
-			 colorMode(HSB, 255);
-			int cHSB = color(hue, sat, brt,128);
+			colorMode(HSB, 255);
+			int cHSB = color(hue, sat, brt, 128);
 			// cHSB = color(hue())
 			fill(cHSB);
 			stroke(cHSB);
-			 rect(x, 0, STEP_X, CAM_HEIGHT);
+			// rect(x, 0, STEP_X, CAM_HEIGHT);
 			int red = (int) valsRGB[0][Statistics.MEAN];
 			int green = (int) valsRGB[1][Statistics.MEAN];
 			int blue = (int) valsRGB[2][Statistics.MEAN];
@@ -370,15 +381,11 @@ public class ReDec extends PApplet {
 			int temp1 = 0;
 			int temp2 = 0;
 			for (int i = 0; i < 12; i++) {
-				stroke(colors[i][0] ? 0xffffffff : 0xff000000);
-				point(x, i);
-				stroke(colors[i][1] ? 0xffffffff : 0xff000000);
-				point(x + 1, i);
 				temp1 |= colors[i][0] ? 1 << i : 0;
 				temp2 |= colors[i][1] ? 1 << i : 0;
 			}
-			 res1.add(temp1);
-			 res2.add(temp2);
+			res1.add(temp1);
+			res2.add(temp2);
 		}
 		// println(res1.getValue());
 		// println(res2.getValue());
@@ -393,28 +400,29 @@ public class ReDec extends PApplet {
 		c.red = rd[0];
 		c.green = gn[0];
 		c.blue = bu[0];
-		c.sd[0] = hu[1];
-		c.sd[1] = st[1];
-		c.sd[2] = bt[1];
-		c.sd[3] = rd[1];
-		c.sd[4] = gn[1];
-		c.sd[5] = bu[1];
+		c.sd[0] = hu[1] *1f;
+		c.sd[1] = st[1] *1f;
+		c.sd[2] = bt[1] * 1f;
+		c.sd[3] = rd[1] * 1f;
+		c.sd[4] = gn[1] * 1f;
+		c.sd[5] = bu[1] * 1f;
 		XMLElement x = root.getChild(c.name);
 		root.removeChild(root.getChild(c.name));
 		root.addChild(c.getXML(x.getIntAttribute("id")));
 		System.out.println(root.getChild(c.name));
 
 	}
-	File projectPath;
-	String colorsXml;
+
+	File	projectPath;
+	String	colorsXml;
 
 	@Override
 	public void setup()
 	{
 
-		size(3 * CAM_WIDTH, 3 * CAM_HEIGHT);
+		size(3 * CAM_WIDTH, 2 * CAM_HEIGHT);
 		projectPath = sketchFile("").getParentFile();
-		colorsXml = projectPath.getPath()+"/colors.xml";
+		colorsXml = projectPath.getPath() + "/colors.xml";
 		silver = new Color(this, "silver", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
 		gold = new Color(this, "gold", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
 		black = new Color(this, "black", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
@@ -446,19 +454,27 @@ public class ReDec extends PApplet {
 		img.start();
 		// thread.start();
 
-
-
 	}
 
 	public void textAndColors()
 	{
 		pushStyle();
 		colorMode(RGB, 255);
+		for(int x=0; x <CAM_WIDTH/STEP_X;x++)
+		{
+			for (int i = 0; i < 12; i++) {
+				stroke((res1.codes[x]&1<<i)!=0 ? 0xffffffff : 0xff000000);
+				point(x*STEP_X, i);
+				stroke((res2.codes[x]&1<<i)!=0 ? 0xffffffff : 0xff000000);
+				point(x*STEP_X + 1, i);
+			}
+		}
+
 		stroke(-1);
 		fill(-1);
 
-		text(rgb, 400, 0);
-		text(hsb, 400, 3 * g.textLeading);
+		text(rgb, 400, CAM_HEIGHT);
+		text(hsb, 400, CAM_HEIGHT + 3 * g.textLeading);
 
 		String s;
 		switch (colorNumber)
@@ -503,9 +519,9 @@ public class ReDec extends PApplet {
 			s = "Invalid Mode";
 		}
 		colorString = s;
-		text(s, CAM_WIDTH, 100);
-		text(res1.getValue(), CAM_WIDTH, 100+g.textLeading);
-		text(res2.getValue(), CAM_WIDTH, 100+2*g.textLeading);
+		text(s, CAM_WIDTH, CAM_HEIGHT + 100);
+		text(res1.getValue(), CAM_WIDTH, CAM_HEIGHT + 100 + g.textLeading);
+		text(res2.getValue(), CAM_WIDTH, CAM_HEIGHT + 100 + 2 * g.textLeading);
 		// text(frameRate,0,10);
 		popStyle();
 	}

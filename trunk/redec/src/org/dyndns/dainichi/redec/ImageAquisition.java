@@ -1,39 +1,48 @@
 package org.dyndns.dainichi.redec;
 
+import processing.serial.Serial;
 import JMyron.JMyron;
 
-public class ImageAquisition extends Thread
-{
-	private static final int FRAMES = 1;
-	private int index;
-	boolean run;
-	private int[][] images;
-	JMyron cam;
-	private LightRing lights;
-	//	private int[][] lighting = {
-	//			{255,255,0},
-	//			{0,255,255},
-	//			{255,0,255}};
-	private int val = 10;
-	private int[][] lighting = {
-			{val,val,val},
-			{val,val,val},
-			{val,val,val}};
-	private ReDec	parent;
-	private boolean	pause;
-	public ImageAquisition(ReDec parent,int width, int height)
-	{
+public class ImageAquisition extends Thread {
+	private static final int	FRAMES	= 3;
+	private int					index;
+	boolean						run;
+	private int[]				image1;
+	private int[]				image2;
+	private int[]				image3;
+	JMyron						cam;
+	byte[][]					R		= { { (byte) 10 }};//, { 0 }, { 0 } };
+	byte[][]					G		= { { (byte) 10 }};
+	byte[][]					B		= { { (byte) 10 } };
+	// private byte[][] lighting = { { (byte) 255, (byte) 255, 0 }, { 0, (byte)
+	// 255, (byte) 255 }, { (byte) 255, 0, (byte) 255 } };
+	private int					val		= 10;
+	// private int[][] lighting = {
+	// {8,10,8}};
+	private ReDec				parent;
+	private boolean				pause;
+	private Serial				serial;
+	AveragedImage				average;
+
+	public ImageAquisition(ReDec parent, int width, int height) {
 
 		this.parent = parent;
+		average = new AveragedImage(parent, width, height, FRAMES);
 		index = 0;
-		images = new int[FRAMES][width*height];
+		image1 = new int[width * height];
+		image2 = new int[width * height];
+		image3 = new int[width * height];
+		serial = new Serial(parent, Serial.list()[1], 38400);
 		cam = new JMyron();
 		cam.start(width, height);
 		cam.findGlobs(0);
-		lights = new LightRing(parent);
+		cam.adaptivity(0);
+
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 *
 	 * @see java.lang.Thread#run()
 	 */
 	@Override
@@ -41,40 +50,57 @@ public class ImageAquisition extends Thread
 	{
 		// TODO Auto-generated method stub
 		super.run();
-		while(run)
-		{
+
+		while (run) {
 			// Check if should wait
-			synchronized (this)
-			{
-				while (pause)
-				{
-					try
-					{
+			synchronized (this) {
+				while (pause) {
+					try {
 						wait();
-					} catch (Exception e)
-					{
-					}
+					} catch (Exception e) {}
 				}
 			}
-			cam.update();
-			//yield();
-			lights.set(lighting[index]);
-			cam.cameraImageCopy(images[index]);
-			//yield();
-			index = (index+1)% FRAMES;
+
+			try {
+				serial.write(R[0]);
+				sleep(1);
+				serial.write(G[0]);
+				sleep(1);
+				serial.write(B[0]);
+				sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			if (!parent.freeze) {
+				cam.update();
+			}
+
+
+			switch (index)
+			{
+			case 0:
+				cam.cameraImageCopy(image1);
+				break;
+			case 1:
+				cam.cameraImageCopy(image2);
+				break;
+			case 2:
+				cam.cameraImageCopy(image3);
+				break;
+			}
+			index = (index + 1) % FRAMES;
 
 		}
-		lights.run = false;
-		try
-		{
-			lights.join(1000);
-		} catch (InterruptedException e)
-		{
 
-		}
+		serial.write("\0\0\0");
+
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 *
 	 * @see java.lang.Thread#start()
 	 */
 	@Override
@@ -82,19 +108,29 @@ public class ImageAquisition extends Thread
 	{
 		// TODO Auto-generated method stub
 		run = true;
-		lights.start();
+
 		super.start();
 	}
-	public synchronized int[][] getImages()
+
+	public synchronized int[] getImage(int i)
 	{
-		return images;
-	}
-	public void pause(){
-		synchronized (this)
+		switch (i)
 		{
+		case 0:
+			return image1;
+		case 1:
+			return image2;
+		}
+		return image3;
+	}
+
+	public void pause()
+	{
+		synchronized (this) {
 			pause = true;
 		}
 	}
+
 	public void unpause()
 	{
 		synchronized (this) {
