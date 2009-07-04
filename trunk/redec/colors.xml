@@ -1,0 +1,122 @@
+  <colors>
+      <silver id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </silver>
+      <green id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </green>
+      <blue id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </blue>
+      <white id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </white>
+      <gold id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </gold>
+      <violet id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </violet>
+      <yellow id="0">
+          <HSB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="0.0" b="0.0" c="0.0"/>
+              <error a="0.0" b="0.0" c="0.0"/>
+          </RGB>
+      </yellow>
+      <brown id="0">
+          <HSB>
+              <components a="148.69553" b="46.405804" c="68.86667"/>
+              <error a="6.4496446" b="1.8357701" c="0.341565"/>
+          </HSB>
+          <RGB>
+              <components a="68.39833" b="54.128605" c="57.38444"/>
+              <error a="0.19895561" b="0.286411" c="0.7206045"/>
+          </RGB>
+      </brown>
+      <orange id="0">
+          <HSB>
+              <components a="133.08032" b="81.59559" c="86.0"/>
+              <error a="6.2367454" b="1.893428" c="0.0"/>
+          </HSB>
+          <RGB>
+              <components a="85.84932" b="38.498997" c="45.223537"/>
+              <error a="0.125" b="0.16753247" c="0.4225282"/>
+          </RGB>
+      </orange>
+      <grey id="0">
+          <HSB>
+              <components a="101.21132" b="20.31227" c="119.410255"/>
+              <error a="4.0163927" b="1.5692801" c="0.49678454"/>
+          </HSB>
+          <RGB>
+              <components a="108.13676" b="111.76603" c="119.60748"/>
+              <error a="0.28867513" b="0.2137126" c="0.2264554"/>
+          </RGB>
+      </grey>
+      <red id="0">
+          <HSB>
+              <components a="129.11018" b="72.70997" c="90.545456"/>
+              <error a="7.295605" b="1.9575574" c="0.52223295"/>
+          </HSB>
+          <RGB>
+              <components a="90.40985" b="43.123867" c="56.467995"/>
+              <error a="0.5844821" b="0.42179608" c="0.5687781"/>
+          </RGB>
+      </red>
+      <black id="0">
+          <HSB>
+              <components a="81.96429" b="19.43517" c="46.857143"/>
+              <error a="4.9184194" b="2.934043" c="1.069045"/>
+          </HSB>
+          <RGB>
+              <components a="44.675297" b="44.22381" c="46.02708"/>
+              <error a="0.75" b="0.69857156" c="0.7009639"/>
+          </RGB>
+      </black>
+  </colors>
