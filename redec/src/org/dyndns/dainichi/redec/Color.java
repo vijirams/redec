@@ -75,11 +75,13 @@ public class Color {
 
 	public boolean[] isInRange(Color color)
 	{
-
+		if(name =="brown")
+			return new boolean[] {
+					ReDec.abs(difference(hue, color.hue, 256)) <= sd[0]*2f && ReDec.abs(saturation - color.saturation) <= sd[1] && ReDec.abs(brightness - color.brightness) <= sd[2],
+					ReDec.abs(red - color.red) <= sd[3] && ReDec.abs(green - color.green) <= sd[4] && ReDec.abs(blue - color.blue) <= sd[5] };
 		return new boolean[] {
-				ReDec.abs(difference(hue, color.hue, 256)) <= sd[0] * 2 && ReDec.abs(saturation - color.saturation) <= sd[1] * 2
-						&& ReDec.abs(brightness - color.brightness) <= sd[2] * 2,
-				ReDec.abs(red - color.red) <= sd[3] * 2 && ReDec.abs(green - color.green) <= sd[4] * 2 && ReDec.abs(blue - color.blue) <= sd[5] * 2 };
+				ReDec.abs(difference(hue, color.hue, 256)) <= sd[0] && ReDec.abs(saturation - color.saturation) <= sd[1] && ReDec.abs(brightness - color.brightness) <= sd[2],
+				ReDec.abs(red - color.red) <= sd[3] && ReDec.abs(green - color.green) <= sd[4] && ReDec.abs(blue - color.blue) <= sd[5] };
 	}
 
 	public int color()
@@ -150,14 +152,14 @@ public class Color {
 	public boolean[] isSimilar(float[][] s)
 	{
 		boolean[] ret = { false, false };
-		if (ReDec.abs(hue - s[0][Statistics.MEAN]) <= sd[0] * 2)
-			if (ReDec.abs(saturation - s[1][Statistics.MEAN]) <= sd[1] * 2)
-				if (ReDec.abs(brightness - s[2][Statistics.MEAN]) <= sd[2] * 2) {
+		if (ReDec.abs(hue - s[0][Statistics.MEAN]) <= sd[0])
+			if (ReDec.abs(saturation - s[1][Statistics.MEAN]) <= sd[1])
+				if (ReDec.abs(brightness - s[2][Statistics.MEAN]) <= sd[2]) {
 					ret[0] = true;
 				}
-		if (ReDec.abs(red - s[3][Statistics.MEAN]) <= sd[3] * 2)
-			if (ReDec.abs(green - s[4][Statistics.MEAN]) <= sd[4] * 2)
-				if (ReDec.abs(blue - s[5][Statistics.MEAN]) <= sd[5] * 2) {
+		if (ReDec.abs(red - s[3][Statistics.MEAN]) <= sd[3])
+			if (ReDec.abs(green - s[4][Statistics.MEAN]) <= sd[4])
+				if (ReDec.abs(blue - s[5][Statistics.MEAN]) <= sd[5]) {
 					ret[1] = true;
 				}
 		return ret;

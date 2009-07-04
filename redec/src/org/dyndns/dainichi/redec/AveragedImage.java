@@ -20,7 +20,7 @@ public class AveragedImage
 		images = new byte[4][width * height][framesInHistory];
 	}
 
-	public void addImage(int[] img)
+	public synchronized void addImage(int[] img)
 	{
 
 		index = (index + 1) % frames;
@@ -51,7 +51,7 @@ public class AveragedImage
 		}
 	}
 
-	public PImage getImage()
+	public synchronized PImage getImage()
 	{
 		PImage out = new PImage(width, height, ReDec.ARGB);
 		out.loadPixels();
@@ -91,7 +91,7 @@ public class AveragedImage
 		return out;
 	}
 
-	public int[] getImageArray()
+	public synchronized int[] getImageArray()
 	{
 		int[] out = new int[width * height];
 
