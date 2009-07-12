@@ -1,7 +1,14 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.applet;
 
 import java.io.File;
 import java.io.PrintWriter;
+
+import org.dyndns.dainichi.redec.util.PrintfFormat;
+import org.dyndns.dainichi.redec.util.Statistics;
+import org.dyndns.dainichi.redec.util.objects.Color;
+import org.dyndns.dainichi.redec.util.objects.Resistor;
+import org.dyndns.dainichi.redec.util.threading.Graphics3DThread;
+import org.dyndns.dainichi.redec.util.threading.ImageAquisition;
 
 import processing.core.PApplet;
 import processing.core.PFont;
@@ -12,13 +19,10 @@ import JMyron.JMyron;
 
 public class ReDec extends PApplet {
 
-	final int				CAM_HEIGHT	= 240;
-	final int				CAM_WIDTH	= 320;
+	public final int				CAM_HEIGHT	= 240;
+	public final int				CAM_WIDTH	= 320;
 	PImage					bg1			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	PImage					bg2			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
-	Color					black;
-	Color					blue;
-	Color					brown;
 	float[]					bt			= new float[] { 0, 0 };
 	float[]					bu			= new float[] { 0, 0 };
 	JMyron					cam;													// a
@@ -30,34 +34,27 @@ public class ReDec extends PApplet {
 
 	final boolean			DEBUG		= true;
 	PFont					font;
-	PGraphics				g1;
-	PGraphics				g2;
-	PGraphics				g3;
-	PGraphics				g4;
-	PGraphics				g5;
-	PGraphics				g6;
+	public PGraphics				g1;
+	public PGraphics				g2;
+	public PGraphics				g3;
+	public PGraphics				g4;
+	public PGraphics				g5;
+	public PGraphics				g6;
 	float[]					gn			= new float[] { 0, 0 };
-	Color					gold;
-	Color					green;
-	Color					grey;
 	String					hsb			= "";
 	float[]					hu			= new float[] { 0, 0 };
 
 	private ImageAquisition	img;
-	Color					local;
-	Color					orange;
 	PrintWriter				pr;
 	float[]					rd			= new float[] { 0, 0 };
-	Color					red;
 	String					rgb			= "";
 
 	XMLElement				root;
 	// Serial serial;
-	Color					silver;
 	float[]					st			= new float[] { 0, 0 };
 	Statistics[]			stats		= new Statistics[] { new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this),
 			new Statistics(this)		};
-	final int				STEP_X		= 2;
+	public final int				STEP_X		= 2;
 	int						test		= 0x78fe5a30;
 	Graphics3DThread		thread1;
 	Graphics3DThread		thread2;
@@ -68,16 +65,24 @@ public class ReDec extends PApplet {
 
 	int[]					vals		= { 0, 0, 0, 0, 216, 144, 48, 0 };
 
-	Color					violet;
-
-	Color					white;
-
-	Color					yellow;
-	boolean					freeze;
+	public Color					violet;
+	public Color					silver;
+	public Color					black;
+	public Color					blue;
+	public Color					brown;
+	public Color					gold;
+	public Color					green;
+	public Color					grey;
+	public Color					local;
+	public Color					orange;
+	public Color					red;
+	public Color					white;
+	public Color					yellow;
+	public boolean					freeze;
 
 	public void _stop()
 	{
-		img.run = false;
+		img.setRun(false);
 		try {
 			img.join();
 		} catch (InterruptedException e) {}
@@ -273,7 +278,7 @@ public class ReDec extends PApplet {
 	{
 		super.mousePressed();
 		if (mouseButton == RIGHT) {
-			img.cam.settings();// click the window to get the settings
+			img.getCam().settings();// click the window to get the settings
 		} else if (mouseButton == LEFT) {
 
 		}
@@ -463,9 +468,9 @@ public class ReDec extends PApplet {
 		for(int x=0; x <CAM_WIDTH/STEP_X;x++)
 		{
 			for (int i = 0; i < 12; i++) {
-				stroke((res1.codes[x]&1<<i)!=0 ? 0xffffffff : 0xff000000);
+				stroke((res1.getCodes()[x]&1<<i)!=0 ? 0xffffffff : 0xff000000);
 				point(x*STEP_X, i);
-				stroke((res2.codes[x]&1<<i)!=0 ? 0xffffffff : 0xff000000);
+				stroke((res2.getCodes()[x]&1<<i)!=0 ? 0xffffffff : 0xff000000);
 				point(x*STEP_X + 1, i);
 			}
 		}

@@ -1,10 +1,13 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util.objects;
 
 import java.util.Vector;
 
+import org.dyndns.dainichi.redec.applet.ReDec;
+import org.dyndns.dainichi.redec.util.PrintfFormat;
+
 public class Resistor {
 	Color[]			stripes;
-	int[]			codes;
+	private int[]			codes;
 	int				stripeIndex	= 0;
 	private ReDec	parent;
 	private int		bits		= 0;
@@ -19,36 +22,36 @@ public class Resistor {
 			stripes[i] = t;
 		}
 
-		codes = new int[stripes.length];
+		setCodes(new int[stripes.length]);
 		assert stripes[0] != null && stripes[1] != null && stripes[2] != null : "stripes not allocated";
 	}
 
 	private void decode()
 	{
-		for (int i = 1; i < codes.length; i++) {
-			if (codes[i] == 0) {
-				codes[i] = codes[i - 1];
+		for (int i = 1; i < getCodes().length; i++) {
+			if (getCodes()[i] == 0) {
+				getCodes()[i] = getCodes()[i - 1];
 			}
 		}
 		Vector<Integer> transitions = new Vector<Integer>(5);
 		int prev = 0;
-		for (int i = 0; i < codes.length; i++) {
-			if (prev != codes[i]) {
+		for (int i = 0; i < getCodes().length; i++) {
+			if (prev != getCodes()[i]) {
 				transitions.add(i);
 			}
 
-			prev = codes[i];
+			prev = getCodes()[i];
 		}
 		int index = 0;
 		for (int i : transitions) {
-			stripes[index++] = getColorfromOneHot(codes[i]);
+			stripes[index++] = getColorfromOneHot(getCodes()[i]);
 		}
 	}
 
 	public void add(int c)
 	{
 
-		codes[stripeIndex++] = c;
+		getCodes()[stripeIndex++] = c;
 	}
 
 	static char							OHM	= '\u03A9';
@@ -169,5 +172,21 @@ public class Resistor {
 			return parent.white;
 		}
 		return t;
+	}
+
+	/**
+	 * @param codes the codes to set
+	 */
+	public void setCodes(int[] codes)
+	{
+		this.codes = codes;
+	}
+
+	/**
+	 * @return the codes
+	 */
+	public int[] getCodes()
+	{
+		return codes;
 	}
 }

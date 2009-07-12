@@ -1,7 +1,9 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import org.dyndns.dainichi.redec.applet.ReDec;
 
 import processing.core.PApplet;
 import processing.core.PImage;

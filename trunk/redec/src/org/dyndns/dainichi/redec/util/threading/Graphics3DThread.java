@@ -1,4 +1,6 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util.threading;
+
+import org.dyndns.dainichi.redec.applet.ReDec;
 
 import processing.core.PGraphics;
 import processing.core.PImage;
