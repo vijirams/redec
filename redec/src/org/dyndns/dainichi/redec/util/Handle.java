@@ -1,4 +1,4 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util;
 
 import processing.core.PApplet;
 

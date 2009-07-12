@@ -1,4 +1,7 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util.objects;
+
+import org.dyndns.dainichi.redec.applet.ReDec;
+import org.dyndns.dainichi.redec.util.Statistics;
 
 import processing.xml.XMLElement;
 

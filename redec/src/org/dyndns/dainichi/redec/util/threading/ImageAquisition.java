@@ -1,4 +1,7 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util.threading;
+
+import org.dyndns.dainichi.redec.applet.ReDec;
+import org.dyndns.dainichi.redec.util.objects.AveragedImage;
 
 import processing.serial.Serial;
 import JMyron.JMyron;
@@ -6,11 +9,11 @@ import JMyron.JMyron;
 public class ImageAquisition extends Thread {
 	private static final int	FRAMES	= 3;
 	private int					index;
-	boolean						run;
+	private boolean						run;
 	private int[]				image1;
 	private int[]				image2;
 	private int[]				image3;
-	JMyron						cam;
+	private JMyron						cam;
 	byte[][]					R		= { { (byte) 10 }};//, { 0 }, { 0 } };
 	byte[][]					G		= { { (byte) 10 }};
 	byte[][]					B		= { { (byte) 10 } };
@@ -33,10 +36,10 @@ public class ImageAquisition extends Thread {
 		image2 = new int[width * height];
 		image3 = new int[width * height];
 		serial = new Serial(parent, Serial.list()[1], 38400);
-		cam = new JMyron();
-		cam.start(width, height);
-		cam.findGlobs(0);
-		cam.adaptivity(0);
+		setCam(new JMyron());
+		getCam().start(width, height);
+		getCam().findGlobs(0);
+		getCam().adaptivity(0);
 
 	}
 
@@ -51,7 +54,7 @@ public class ImageAquisition extends Thread {
 		// TODO Auto-generated method stub
 		super.run();
 
-		while (run) {
+		while (isRun()) {
 			// Check if should wait
 			synchronized (this) {
 				while (pause) {
@@ -74,20 +77,20 @@ public class ImageAquisition extends Thread {
 			}
 
 			if (!parent.freeze) {
-				cam.update();
+				getCam().update();
 			}
 
 
 			switch (index)
 			{
 			case 0:
-				cam.cameraImageCopy(image1);
+				getCam().cameraImageCopy(image1);
 				break;
 			case 1:
-				cam.cameraImageCopy(image2);
+				getCam().cameraImageCopy(image2);
 				break;
 			case 2:
-				cam.cameraImageCopy(image3);
+				getCam().cameraImageCopy(image3);
 				break;
 			}
 			index = (index + 1) % FRAMES;
@@ -107,7 +110,7 @@ public class ImageAquisition extends Thread {
 	public synchronized void start()
 	{
 		// TODO Auto-generated method stub
-		run = true;
+		setRun(true);
 
 		super.start();
 	}
@@ -137,6 +140,38 @@ public class ImageAquisition extends Thread {
 			pause = false;
 			notify();
 		}
+	}
+
+	/**
+	 * @param run the run to set
+	 */
+	public void setRun(boolean run)
+	{
+		this.run = run;
+	}
+
+	/**
+	 * @return the run
+	 */
+	public boolean isRun()
+	{
+		return run;
+	}
+
+	/**
+	 * @param cam the cam to set
+	 */
+	public void setCam(JMyron cam)
+	{
+		this.cam = cam;
+	}
+
+	/**
+	 * @return the cam
+	 */
+	public JMyron getCam()
+	{
+		return cam;
 	}
 
 }

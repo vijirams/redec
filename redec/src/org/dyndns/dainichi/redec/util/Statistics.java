@@ -1,6 +1,9 @@
-package org.dyndns.dainichi.redec;
+package org.dyndns.dainichi.redec.util;
 
 import java.util.Arrays;
+
+import org.dyndns.dainichi.redec.applet.ReDec;
+import org.dyndns.dainichi.redec.util.objects.Color;
 
 import processing.core.PImage;
 
