@@ -5,15 +5,36 @@ import java.util.Vector;
 import org.dyndns.dainichi.redec.applet.ReDec;
 import org.dyndns.dainichi.redec.util.PrintfFormat;
 
+/**
+ * This Class is used to find the resistor stripes in the image.
+ * @author dejagerd
+ *
+ */
 public class Resistor {
+	static char							OHM	= '\u03A9';
 	Color[]			stripes;
 	private int[]			codes;
 	int				stripeIndex	= 0;
 	private ReDec	parent;
-	private int		bits		= 0;
-	private int		prevBits	= 0;
-	Color			t			= new Color(parent, "bg", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+	Color			t			= new Color(parent, "bg");
+	private static final PrintfFormat[]	pf	= new PrintfFormat[] { new PrintfFormat("0.%d%d%c"), // 0.xx
+		new PrintfFormat("% d.%d%c"), // x.x
+		new PrintfFormat("%  d%d%c"), // xx
+		new PrintfFormat("% d%d0%c"), // xx0
+		new PrintfFormat("%d.%dK%c"), // x.xK
+		new PrintfFormat("% d%dK%c"), // xxK
+		new PrintfFormat("%d%d0K%c"), // xx0K
+		new PrintfFormat("%d.%dM%c"), // x.xM
+		new PrintfFormat(" %d%dM%c"), // xxM
+		new PrintfFormat("%d%d0M%c"), // xx0M
+		new PrintfFormat("%d.%dG%c"), // x.xG
+		new PrintfFormat(" %d%dG%c"), // xxG
+		new PrintfFormat("     ")		};			// ???
 
+	/**
+	 * Create a new resistor.
+	 * @param parent Parent reference.
+	 */
 	public Resistor(ReDec parent) {
 		this.parent = parent;
 
@@ -22,10 +43,13 @@ public class Resistor {
 			stripes[i] = t;
 		}
 
-		setCodes(new int[stripes.length]);
+		codes = new int[stripes.length];
 		assert stripes[0] != null && stripes[1] != null && stripes[2] != null : "stripes not allocated";
 	}
 
+	/**
+	 * private method called to run the decoding.
+	 */
 	private void decode()
 	{
 		for (int i = 1; i < getCodes().length; i++) {
@@ -48,27 +72,19 @@ public class Resistor {
 		}
 	}
 
+	/**
+	 * Add a stripe (as a bitfield)
+	 * @param c Bitfield used to indicate color detection.
+	 */
 	public void add(int c)
 	{
-
 		getCodes()[stripeIndex++] = c;
 	}
 
-	static char							OHM	= '\u03A9';
-	private static final PrintfFormat[]	pf	= new PrintfFormat[] { new PrintfFormat("0.%d%d%c"), // 0.xx
-			new PrintfFormat("% d.%d%c"), // x.x
-			new PrintfFormat("%  d%d%c"), // xx
-			new PrintfFormat("% d%d0%c"), // xx0
-			new PrintfFormat("%d.%dK%c"), // x.xK
-			new PrintfFormat("% d%dK%c"), // xxK
-			new PrintfFormat("%d%d0K%c"), // xx0K
-			new PrintfFormat("%d.%dM%c"), // x.xM
-			new PrintfFormat(" %d%dM%c"), // xxM
-			new PrintfFormat("%d%d0M%c"), // xx0M
-			new PrintfFormat("%d.%dG%c"), // x.xG
-			new PrintfFormat(" %d%dG%c"), // xxG
-			new PrintfFormat("     ")		};			// ???
-
+	/**
+	 * Get the String representation of the detected Resistor.
+	 * @return String containing the value of this resistor.
+	 */
 	public String getValue()
 	{
 		assert stripes[0] != null && stripes[1] != null && stripes[2] != null;
@@ -79,6 +95,11 @@ public class Resistor {
 		return pf[stripe3 + 2].sprintf(new Object[] { stripe1, stripe2, OHM });
 	}
 
+	/**
+	 * Converts a detected color to a index value.
+	 * @param c Color to decode.
+	 * @return index of the color.
+	 */
 	private int getIndex(Color c)
 	{
 
@@ -109,7 +130,7 @@ public class Resistor {
 		return 10;
 	}
 
-	private Color getColor(int index)
+/*	private Color getColor(int index)
 	{
 		switch (index)
 		{
@@ -141,7 +162,13 @@ public class Resistor {
 		}
 		return t;
 	}
+	*/
 
+	/**
+	 * Converts a one-hot encoded color input into it's corrisponding Color.
+	 * @param c Bitfield decoded
+	 * @return the color corresponding to <code>c</code>
+	 */
 	private Color getColorfromOneHot(int c)
 	{
 		switch (c)
@@ -175,14 +202,7 @@ public class Resistor {
 	}
 
 	/**
-	 * @param codes the codes to set
-	 */
-	public void setCodes(int[] codes)
-	{
-		this.codes = codes;
-	}
-
-	/**
+	 * Used to access the bitfield array of detected color stripes.
 	 * @return the codes
 	 */
 	public int[] getCodes()

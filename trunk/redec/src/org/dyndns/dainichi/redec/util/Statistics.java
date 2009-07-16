@@ -7,6 +7,11 @@ import org.dyndns.dainichi.redec.util.objects.Color;
 
 import processing.core.PImage;
 
+/**
+ * Class used to do statistics.
+ * @author dejagerd
+ *
+ */
 public class Statistics
 {
 	private ReDec			parent;
@@ -26,11 +31,21 @@ public class Statistics
 	public static final int	BINS		= 4;
 	public static final int	BINS_MAX	= 5;
 
+	/**
+	 * Create a new Statistics object.
+	 * @param theParent
+	 */
 	public Statistics(ReDec theParent)
 	{
 		parent = theParent;
 	}
-
+/*
+	/**
+	 * Static method used to  process a whole image at once.
+	 * @param parent reference to the parent object.
+	 * @param data Image to process.
+	 * @return An array containing the calculated values.
+	 /
 	public static float[][] process(ReDec parent, PImage data)
 	{
 
@@ -124,15 +139,24 @@ public class Statistics
 
 		return new float[][] { mean, median, sd, max, binsMax, bins[HUE], bins[SATURATION], bins[BRIGHTNESS], bins[RED], bins[GREEN], bins[BLUE] };
 	}
-
+*/
+	/**
+	 * Static method used to perform my statistical analysis on a whole image at once, but only in one color band.
+	 * @param parent reference to the parent object
+	 * @param data Image to process
+	 * @param colorBand band to process in.
+	 * @return analysis
+	 */
 	public static float[] process(ReDec parent, PImage data, int colorBand)
 	{
-		assert (colorBand >= 0 && colorBand < 6);
+		assert colorBand >= 0 && colorBand < 6;
 		parent.pushStyle();
-		if (colorBand > SATURATION)
+		if (colorBand > SATURATION) {
 			parent.colorMode(ReDec.RGB, 255);
-		if (colorBand <= SATURATION)
+		}
+		if (colorBand <= SATURATION) {
 			parent.colorMode(ReDec.HSB, 255);
+		}
 		float[] values = new float[data.pixels.length];
 		float[] bins = new float[256];
 		float binsMax = 0;
@@ -182,12 +206,14 @@ public class Statistics
 				sumOfSquares += ReDec.sq(localVal);
 				mean = sum / n;
 				bins[(int) localVal]++;
-				if (n <= 1)
+				if (n <= 1) {
 					continue;
-				if (colorBand == HUE)
+				}
+				if (colorBand == HUE) {
 					sd = ReDec.sqrt(Color.difference(sumOfSquares, ReDec.sq(sum) / n, 256) / (n - 1));
-				else
+				} else {
 					sd = ReDec.sqrt((sumOfSquares - ReDec.sq(sum) / n) / (n - 1));
+				}
 
 			}
 		}
@@ -208,6 +234,9 @@ public class Statistics
 		return ReDec.concat(new float[] { mean, median, sd, max, binsMax }, bins);
 	}
 
+	/**
+	 * zeros out the accumulators for the stats class.
+	 */
 	public void zero()
 	{
 		sum = 0;
@@ -226,6 +255,11 @@ public class Statistics
 	float			max				= 0;
 	float			n				= 0;
 
+	/**
+	 * Adds a datapoint to this Statistics object.
+	 * @param dp Datapoint to add.
+	 * @return results of the addition to this stats.
+	 */
 	public float[] add(float dp)
 	{
 		n += 1;

@@ -4,6 +4,11 @@ import org.dyndns.dainichi.redec.applet.ReDec;
 
 import processing.core.PImage;
 
+/**
+ * Stores a PImage that is the average of the last few images stored.
+ * @author dejagerd
+ *
+ */
 public class AveragedImage
 {
 	ReDec		parent;
@@ -13,6 +18,13 @@ public class AveragedImage
 	private int	frames;
 	byte[][][]	images;
 
+	/**
+	 * Instatiates a new Average Image.
+	 * @param parent Parent ReDec
+	 * @param width Width of image
+	 * @param height Height of image
+	 * @param framesInHistory Number of images to average together.
+	 */
 	public AveragedImage(ReDec parent, int width, int height, int framesInHistory)
 	{
 		this.parent = parent;
@@ -22,6 +34,10 @@ public class AveragedImage
 		images = new byte[4][width * height][framesInHistory];
 	}
 
+	/**
+	 * Adds a new image to the average, replacing the oldest.
+	 * @param img Image to add.
+	 */
 	public synchronized void addImage(int[] img)
 	{
 
@@ -33,11 +49,15 @@ public class AveragedImage
 			pixel = img[i];
 			images[0][i][index] = (byte) (pixel >> 24);
 			images[1][i][index] = (byte) (pixel >> 16 & 0xff);
-			images[2][i][index] = (byte) (pixel >> 24 & 0xff);
-			images[3][i][index] = (byte) (pixel >> 24 & 0xff);
+			images[2][i][index] = (byte) (pixel >> 8 & 0xff);
+			images[3][i][index] = (byte) (pixel & 0xff);
 		}
 	}
 
+	/**
+	 * Same as addImage(int[])
+	 * @param img Pimage to use.
+	 */
 	public void addImage(PImage img)
 	{
 		img.loadPixels();
@@ -53,6 +73,10 @@ public class AveragedImage
 		}
 	}
 
+	/**
+	 * Averages the previous Images added, and returns it.
+	 * @return new Pimage containing the average of the images stored herein.
+	 */
 	public synchronized PImage getImage()
 	{
 		PImage out = new PImage(width, height, ReDec.ARGB);
@@ -93,6 +117,11 @@ public class AveragedImage
 		return out;
 	}
 
+	/**
+	 * Same as getImage() except returns image in int[] format.
+	 * @return int[] containing averaged image.
+	 *
+	 */
 	public synchronized int[] getImageArray()
 	{
 		int[] out = new int[width * height];

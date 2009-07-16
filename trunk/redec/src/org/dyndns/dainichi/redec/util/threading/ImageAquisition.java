@@ -6,6 +6,11 @@ import org.dyndns.dainichi.redec.util.objects.AveragedImage;
 import processing.serial.Serial;
 import JMyron.JMyron;
 
+/**
+ * Image capture has been moved to this thread to help keep interface smooth.
+ * @author dejagerd
+ *
+ */
 public class ImageAquisition extends Thread {
 	private static final int	FRAMES	= 3;
 	private int					index;
@@ -27,6 +32,12 @@ public class ImageAquisition extends Thread {
 	private Serial				serial;
 	AveragedImage				average;
 
+	/**
+	 * Create a new ImageAquasition thread.
+	 * @param parent parent reference.
+	 * @param width width
+	 * @param height height
+	 */
 	public ImageAquisition(ReDec parent, int width, int height) {
 
 		this.parent = parent;
@@ -115,6 +126,11 @@ public class ImageAquisition extends Thread {
 		super.start();
 	}
 
+	/**
+	 * returns the captured images
+	 * @param i image to return
+	 * @return
+	 */
 	public synchronized int[] getImage(int i)
 	{
 		switch (i)
@@ -127,6 +143,9 @@ public class ImageAquisition extends Thread {
 		return image3;
 	}
 
+	/**
+	 * Pause
+	 */
 	public void pause()
 	{
 		synchronized (this) {
@@ -134,6 +153,9 @@ public class ImageAquisition extends Thread {
 		}
 	}
 
+	/**
+	 * Unpause.
+	 */
 	public void unpause()
 	{
 		synchronized (this) {
