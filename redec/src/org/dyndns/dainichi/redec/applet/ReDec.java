@@ -15,24 +15,26 @@ import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.xml.XMLElement;
-import JMyron.JMyron;
 
+/**
+ * @author dejagerd
+ *
+ */
 public class ReDec extends PApplet {
 
 	public final int				CAM_HEIGHT	= 240;
 	public final int				CAM_WIDTH	= 320;
+	public final int				STEP_X		= 2;
+	//final boolean			DEBUG		= true;
 	PImage					bg1			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	PImage					bg2			= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 	float[]					bt			= new float[] { 0, 0 };
 	float[]					bu			= new float[] { 0, 0 };
-	JMyron					cam;													// a
 
-	// private Color bg = new Color(this, new float[] { 52.3f, 62.4f, 58.4f },
-	// new float[] { 2.02f, 1.68f, 1.96f });
-	int						colorNumber	= HSB;
+	int						colorNumber	= 0;
 	String					colorString;
 
-	final boolean			DEBUG		= true;
+
 	PFont					font;
 	public PGraphics				g1;
 	public PGraphics				g2;
@@ -50,20 +52,22 @@ public class ReDec extends PApplet {
 	String					rgb			= "";
 
 	XMLElement				root;
-	// Serial serial;
 	float[]					st			= new float[] { 0, 0 };
 	Statistics[]			stats		= new Statistics[] { new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this), new Statistics(this),
 			new Statistics(this)		};
-	public final int				STEP_X		= 2;
-	int						test		= 0x78fe5a30;
+
+
 	Graphics3DThread		thread1;
 	Graphics3DThread		thread2;
 	Graphics3DThread		thread3;
 	Graphics3DThread		thread4;
 	Graphics3DThread		thread5;
 	Graphics3DThread		thread6;
+	PImage	i1	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
+	PImage	i2	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
+	PImage	i3	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 
-	int[]					vals		= { 0, 0, 0, 0, 216, 144, 48, 0 };
+
 
 	public Color					violet;
 	public Color					silver;
@@ -79,8 +83,16 @@ public class ReDec extends PApplet {
 	public Color					white;
 	public Color					yellow;
 	public boolean					freeze;
-
-	public void _stop()
+	Resistor	res1;	// = new Resistor(this);
+	Resistor	res2;	// = new Resistor(this);
+	File	projectPath;
+	String	colorsXml;
+	/**
+	 * Called to shut down the program.
+	 * Duties include proper termination of various threads
+	 * and writing the color tree to persistant storage.
+	 */
+	public void endProgram()
 	{
 		img.setRun(false);
 		try {
@@ -93,6 +105,14 @@ public class ReDec extends PApplet {
 		exit();
 	}
 
+	/**
+	 * Dees a ChromaKey of the source image. Also doubles as an array copy utility.
+	 * copies pixels from <code>src</code> to <code>dest</code> if the input pixels
+	 * obey some preset rules. Otherwise the equivalent pixel in <code>dest</code>
+	 * is set to all black, and maximum transparency.
+	 * @param src Input image.
+	 * @param dest Output PImage.
+	 */
 	public void chromaKey(int[] src, PImage dest)
 	{
 		dest.loadPixels();
@@ -120,21 +140,13 @@ public class ReDec extends PApplet {
 		dest.updatePixels();
 	}
 
-	PImage	i1	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
-	PImage	i2	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
-	PImage	i3	= new PImage(CAM_WIDTH, CAM_HEIGHT, ARGB);
 
+	/* (non-Javadoc)
+	 * @see processing.core.PApplet#draw()
+	 */
 	@Override
 	public void draw()
 	{
-		// if (frameCount == 2) {
-		// thread1.start();
-		// thread2.start();
-		// thread3.start();
-		// thread4.start();
-		// thread5.start();
-		// thread6.start();
-		// }
 		colorMode(RGB, 255);
 		fill(color(0xff000000));
 		stroke(color(0xff000000));
@@ -153,33 +165,19 @@ public class ReDec extends PApplet {
 		i1.loadPixels();
 		i2.loadPixels();
 		i3.loadPixels();
-		//for (int i = 0; i < a.pixels.length; i++) {
-//			int red = Color.red(i1.pixels[i]) + Color.red(i2.pixels[i]) + Color.red(i3.pixels[i]);
-//			red /= 3;
-//			int green = Color.green(i1.pixels[i]) + Color.green(i2.pixels[i]) + Color.green(i3.pixels[i]);
-//			green /= 3;
-//			int blue = Color.blue(i1.pixels[i]) + Color.blue(i2.pixels[i]) + Color.blue(i3.pixels[i]);
-//			blue /= 3;
-//			a.pixels[i] = Color.color(255, red, green, blue);
 
-		//}
 		a.updatePixels();
 		image(i1,0,CAM_HEIGHT);
 		bg2 = i1.get();
-		// image(bg2, CAM_WIDTH * 2, 0);
 
-		// image(g1, 0, 240);
-		// image(g2, 320, 240);
-		// image(g3, 640, 240);
-		// image(g4, 0, 480);
-		// image(g5, 320, 480);
-		// image(g6, 640, 480);
-		// loadPixels();
 
 		processPixels();
 		textAndColors();
 	}
 
+	/* (non-Javadoc)
+	 * @see processing.core.PApplet#keyPressed()
+	 */
 	@Override
 	public void keyPressed()
 	{
@@ -187,44 +185,37 @@ public class ReDec extends PApplet {
 		if (key == CODED && keyPressed) {
 			switch (keyCode)
 			{
-			case ESC:
+			case ESC: // if ESC is pressed exit program.
 				key = 0;
 				keyCode = 0;
-				_stop();
+				endProgram();
 				break;
-			case DOWN:
+			case DOWN:// if DOWN or RIGHT arrow is pressed increment color selector.
 			case RIGHT:
 				colorNumber = (colorNumber + 1) % 12;
 				break;
-			case LEFT:
+			case LEFT: // if UP or LEFT arrow is pressed, decrement color selector.
 			case UP:
-				if (colorNumber == 0) {
-					colorNumber = 11;
-
-				} else {
-					colorNumber--;
-				}
+				colorNumber = colorNumber <= 0? 11: colorNumber - 1;
 				break;
 			}
 		} else {
 			switch (key)
 			{
-			case ESC:
+			case ESC: // if ESC is pressed exit program.
 				key = 0;
-				_stop();
+				endProgram();
 				break;
-			case 'a':
-			case 'A':
-				cam.adapt();
-				break;
-			case 's':
+
+			case 's':// save current Image to program directory
 			case 'S':
 				bg1.save(projectPath.getAbsolutePath() + "/" + System.currentTimeMillis() + ".png");
 				break;
-			case 'p':
+			case 'p'://pause capture
 			case 'P':
 				freeze = !freeze;
-			case ENTER:
+				break;
+			case ENTER://press enter to save a calibration point.
 			case RETURN:
 				switch (colorNumber)
 				{
@@ -279,30 +270,34 @@ public class ReDec extends PApplet {
 		super.mousePressed();
 		if (mouseButton == RIGHT) {
 			img.getCam().settings();// click the window to get the settings
-		} else if (mouseButton == LEFT) {
-
 		}
 	}
 
+	/**
+	 * This method is used to parse the XML file that holds the color calibration data.
+	 * @param root <code>XMLElement</code> that is the root node of the XML tree.
+	 */
 	public void parseXml(XMLElement root)
 	{
-		silver.loadFromXML(root.getChild("silver"));
-		gold.loadFromXML(root.getChild("gold"));
-		black.loadFromXML(root.getChild("black"));
-		brown.loadFromXML(root.getChild("brown"));
-		red.loadFromXML(root.getChild("red"));
-		orange.loadFromXML(root.getChild("orange"));
-		yellow.loadFromXML(root.getChild("yellow"));
-		green.loadFromXML(root.getChild("green"));
-		blue.loadFromXML(root.getChild("blue"));
-		violet.loadFromXML(root.getChild("violet"));
-		grey.loadFromXML(root.getChild("grey"));
-		white.loadFromXML(root.getChild("white"));
+		silver.loadFromXML(root);
+		gold.loadFromXML(root);
+		black.loadFromXML(root);
+		brown.loadFromXML(root);
+		red.loadFromXML(root);
+		orange.loadFromXML(root);
+		yellow.loadFromXML(root);
+		green.loadFromXML(root);
+		blue.loadFromXML(root);
+		violet.loadFromXML(root);
+		grey.loadFromXML(root);
+		white.loadFromXML(root);
 	}
 
-	Resistor	res1;	// = new Resistor(this);
-	Resistor	res2;	// = new Resistor(this);
 
+
+	/**
+	 * Worker method that does the actual analysis of the pixels in the image.
+	 */
 	public void processPixels()
 	{
 		boolean[][] colors = new boolean[12][2];
@@ -392,35 +387,35 @@ public class ReDec extends PApplet {
 			res1.add(temp1);
 			res2.add(temp2);
 		}
-		// println(res1.getValue());
-		// println(res2.getValue());
 
 	}
 
+	/**
+	 * Method to same the current color to the XML file
+	 * @param c color to save.
+	 */
 	public void saveColor(Color c)
 	{
-		c.hue = hu[0];
-		c.saturation = st[0];
-		c.brightness = bt[0];
-		c.red = rd[0];
-		c.green = gn[0];
-		c.blue = bu[0];
-		c.sd[0] = hu[1] *1f;
-		c.sd[1] = st[1] *1f;
-		c.sd[2] = bt[1] * 1f;
-		c.sd[3] = rd[1] * 1f;
-		c.sd[4] = gn[1] * 1f;
-		c.sd[5] = bu[1] * 1f;
-		XMLElement x = root.getChild(c.name);
-		root.removeChild(root.getChild(c.name));
-		root.addChild(c.getXML(x.getIntAttribute("id")));
-		System.out.println(root.getChild(c.name));
-
+		c.hue.add(hu[0]);
+		c.hue.add(hu[1]);
+		c.saturation.add(st[0]);
+		c.saturation.add(st[1]);
+		c.brightness.add(bt[0]);
+		c.brightness.add(bt[1]);
+		c.red.add(rd[0]);
+		c.red.add(rd[1]);
+		c.green.add(gn[0]);
+		c.green.add(gn[1]);
+		c.blue.add(bu[0]);
+		c.blue.add(bu[1]);
+		c.saveColor(root);
 	}
 
-	File	projectPath;
-	String	colorsXml;
 
+
+	/* (non-Javadoc)
+	 * @see processing.core.PApplet#setup()
+	 */
 	@Override
 	public void setup()
 	{
@@ -428,18 +423,18 @@ public class ReDec extends PApplet {
 		size(3 * CAM_WIDTH, 2 * CAM_HEIGHT);
 		projectPath = sketchFile("").getParentFile();
 		colorsXml = projectPath.getPath() + "/colors.xml";
-		silver = new Color(this, "silver", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		gold = new Color(this, "gold", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		black = new Color(this, "black", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		brown = new Color(this, "brown", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		red = new Color(this, "red", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		orange = new Color(this, "orange", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		yellow = new Color(this, "yellow", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		green = new Color(this, "green", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		blue = new Color(this, "blue", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		violet = new Color(this, "violet", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		grey = new Color(this, "grey", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
-		white = new Color(this, "white", new float[] { 0, 0, 0, 0, 0, 0 }, new float[] { 0, 0, 0, 0, 0, 0 });
+		silver = new Color(this, "silver");
+		gold = new Color(this, "gold");
+		black = new Color(this, "black");
+		brown = new Color(this, "brown");
+		red = new Color(this, "red");
+		orange = new Color(this, "orange");
+		yellow = new Color(this, "yellow");
+		green = new Color(this, "green");
+		blue = new Color(this, "blue");
+		violet = new Color(this, "violet");
+		grey = new Color(this, "grey");
+		white = new Color(this, "white");
 
 		root = new XMLElement(this, colorsXml);
 		parseXml(root);
@@ -461,6 +456,9 @@ public class ReDec extends PApplet {
 
 	}
 
+	/**
+	 * Prints relevant info to the screen.
+	 */
 	public void textAndColors()
 	{
 		pushStyle();
@@ -531,6 +529,19 @@ public class ReDec extends PApplet {
 		popStyle();
 	}
 
+	/**
+	 * Converts a standard PImage type pixel array(in RGB) to a 3x pixel array containing HSB values.
+	 * output if formatted thus (n is an individual pixel number):
+	 * output[0][n] is alpha,
+	 * output[1][n] is hue,
+	 * output[2][n] is saturation,
+	 * output[3][n] is brightness,
+	 * output[4][n] is red,
+	 * output[5][n] is green,
+	 * output[6][n] is blue.
+	 * @param input Pixels input
+	 * @param output Pixels output
+	 */
 	public void rgbToHsb(int[] input, int[][] output)
 	{
 		pushStyle();

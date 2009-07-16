@@ -5,6 +5,11 @@ import org.dyndns.dainichi.redec.applet.ReDec;
 import processing.core.PGraphics;
 import processing.core.PImage;
 
+/**
+ * Used to process images separately into a 3d view.
+ * @author dejagerd
+ *
+ */
 public class Graphics3DThread extends Thread
 {
 	ReDec		parent;
@@ -15,31 +20,12 @@ public class Graphics3DThread extends Thread
 
 	public Graphics3DThread(ReDec parent, PGraphics device,PImage src)
 	{
-		// TODO Auto-generated constructor stub
 		super();
 		img = src;
 		this.parent = parent;
 		this.device = device;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Thread#destroy()
-	 */
-	@Override
-	public void destroy()
-	{
-		// TODO Auto-generated method stub
-		super.destroy();
-	}
-
-
-	public synchronized void quit()
-	{
-		running = false;
-		interrupt();
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -49,7 +35,7 @@ public class Graphics3DThread extends Thread
 	@Override
 	public void run()
 	{
-		// TODO Auto-generated method stub
+
 		super.run();
 		int dev = device.equals(parent.g6) ? 6 : device.equals(parent.g5) ? 5 : device.equals(parent.g4) ? 4 : device.equals(parent.g3) ? 3 : device.equals(parent.g2) ? 2 : device
 				.equals(parent.g1) ? 1 : 0;
@@ -165,17 +151,22 @@ public class Graphics3DThread extends Thread
 	@Override
 	public synchronized void start()
 	{
-		// TODO Auto-generated method stub
 		super.start();
 		running = true;
 
 	}
+	/**
+	 * Pause this thread.
+	 */
 	public void pause(){
 		synchronized (this)
 		{
 			pause = true;
 		}
 	}
+	/**
+	 * Unpause this thread.
+	 */
 	public void unpause()
 	{
 		synchronized (this) {
