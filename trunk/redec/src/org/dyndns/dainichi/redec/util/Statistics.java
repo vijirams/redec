@@ -39,107 +39,7 @@ public class Statistics
 	{
 		parent = theParent;
 	}
-/*
-	/**
-	 * Static method used to  process a whole image at once.
-	 * @param parent reference to the parent object.
-	 * @param data Image to process.
-	 * @return An array containing the calculated values.
-	 /
-	public static float[][] process(ReDec parent, PImage data)
-	{
 
-		float[][] values = new float[6][parent.pixels.length];
-		float[][] bins = new float[6][256];
-		float[] binsMax = { 0, 0, 0, 0, 0, 0 };
-		float[] sum = { 0, 0, 0, 0, 0, 0 };
-		float[] sumOfSquares = { 0, 0, 0, 0, 0, 0 };
-		float[] mean = { 0, 0, 0, 0, 0, 0 };
-		float[] median = { 0, 0, 0, 0, 0, 0 };
-		float[] sd = { 0, 0, 0, 0, 0, 0 };
-		float[] max = { 0, 0, 0, 0, 0, 0 };
-		float n = 0;
-		for (float[] f : values)
-		{
-			Arrays.fill(f, 0f);
-		}
-		data.loadPixels();
-
-		parent.colorMode(ReDec.HSB, 255);
-		int i = 0;
-		for (int pixel : data.pixels)
-		{
-			if (parent.alpha(pixel) > 0)
-			{
-				values[HUE][i] = parent.hue(pixel);
-				values[SATURATION][i] = parent.saturation(pixel);
-				values[BRIGHTNESS][i] = parent.brightness(pixel);
-				values[RED][i] = parent.red(pixel);
-				values[GREEN][i] = parent.green(pixel);
-				values[BLUE][i++] = parent.blue(pixel);
-				n += 1;
-				sum[HUE] += parent.hue(pixel);
-				sum[SATURATION] += parent.saturation(pixel);
-				sum[BRIGHTNESS] += parent.brightness(pixel);
-				sum[RED] += parent.red(pixel);
-				sum[GREEN] += parent.green(pixel);
-				sum[BLUE] += parent.blue(pixel);
-				sumOfSquares[HUE] += ReDec.sq(parent.hue(pixel));
-				sumOfSquares[SATURATION] += ReDec.sq(parent.saturation(pixel));
-				sumOfSquares[BRIGHTNESS] += ReDec.sq(parent.brightness(pixel));
-				sumOfSquares[RED] += ReDec.sq(parent.red(pixel));
-				sumOfSquares[GREEN] += ReDec.sq(parent.green(pixel));
-				sumOfSquares[BLUE] += ReDec.sq(parent.blue(pixel));
-				mean[HUE] = sum[HUE] / n;
-				mean[SATURATION] = sum[SATURATION] / n;
-				mean[BRIGHTNESS] = sum[BRIGHTNESS] / n;
-				mean[RED] = sum[RED] / n;
-				mean[GREEN] = sum[GREEN] / n;
-				mean[BLUE] = sum[BLUE] / n;
-				sd[HUE] = ReDec.sqrt((sumOfSquares[HUE] - ReDec.sq(sum[HUE]) / n) / (n - 1));
-				sd[SATURATION] = ReDec.sqrt((sumOfSquares[SATURATION] - ReDec.sq(sum[SATURATION]) / n) / (n - 1));
-				sd[BRIGHTNESS] = ReDec.sqrt((sumOfSquares[BRIGHTNESS] - ReDec.sq(sum[BRIGHTNESS]) / n) / (n - 1));
-				sd[RED] = ReDec.sqrt((sumOfSquares[RED] - ReDec.sq(sum[RED]) / n) / (n - 1));
-				sd[GREEN] = ReDec.sqrt((sumOfSquares[GREEN] - ReDec.sq(sum[GREEN]) / n) / (n - 1));
-				sd[BLUE] = ReDec.sqrt((sumOfSquares[BLUE] - ReDec.sq(sum[BLUE]) / n) / (n - 1));
-				bins[HUE][(int) parent.hue(pixel)]++;
-				bins[SATURATION][(int) parent.saturation(pixel)]++;
-				bins[BRIGHTNESS][(int) parent.brightness(pixel)]++;
-				bins[RED][(int) parent.red(pixel)]++;
-				bins[GREEN][(int) parent.green(pixel)]++;
-				bins[BLUE][(int) parent.blue(pixel)]++;
-			}
-		}
-		for (float[] f : values)
-		{
-			Arrays.sort(f);
-		}
-		if (n % 2 == 1)
-		{
-			median[HUE] = values[HUE][(int) (n / 2 + 1)];
-			median[SATURATION] = values[SATURATION][(int) (n / 2 + 1)];
-			median[BRIGHTNESS] = values[BRIGHTNESS][(int) (n / 2 + 1)];
-			median[RED] = values[RED][(int) (n / 2 + 1)];
-			median[GREEN] = values[GREEN][(int) (n / 2 + 1)];
-			median[BLUE] = values[BLUE][(int) (n / 2 + 1)];
-		} else
-		{
-			median[HUE] = (values[HUE][(int) (n / 2)] + values[HUE][(int) (n / 2 + 1)]) / 2f;
-			median[SATURATION] = (values[SATURATION][(int) (n / 2)] + values[SATURATION][(int) (n / 2 + 1)]) / 2f;
-			median[BRIGHTNESS] = (values[BRIGHTNESS][(int) (n / 2)] + values[BRIGHTNESS][(int) (n / 2 + 1)]) / 2f;
-			median[RED] = (values[RED][(int) (n / 2)] + values[RED][(int) (n / 2 + 1)]) / 2f;
-			median[GREEN] = (values[GREEN][(int) (n / 2)] + values[GREEN][(int) (n / 2 + 1)]) / 2f;
-			median[BLUE] = (values[BLUE][(int) (n / 2)] + values[BLUE][(int) (n / 2 + 1)]) / 2f;
-		}
-		for (int i1 = 0; i1 < 6; i1++)
-		{
-			binsMax[i1] = ReDec.max(bins[i1]);
-			max[i1] = ReDec.max(values[i1]);
-		}
-
-		return new float[][] { mean, median, sd, max, binsMax, bins[HUE], bins[SATURATION], bins[BRIGHTNESS], bins[RED], bins[GREEN], bins[BLUE] };
-	}
-*/
 	/**
 	 * Static method used to perform my statistical analysis on a whole image at once, but only in one color band.
 	 * @param parent reference to the parent object
@@ -219,7 +119,7 @@ public class Statistics
 		}
 
 		Arrays.sort(values);
-
+		if(values.length >0){
 		if (n % 2 == 1)
 		{
 			median = values[(int) (n / 2 + 1)];
@@ -229,6 +129,7 @@ public class Statistics
 		}
 		binsMax = ReDec.max(bins);
 		max = ReDec.max(values);
+		}
 		parent.popStyle();
 
 		return ReDec.concat(new float[] { mean, median, sd, max, binsMax }, bins);

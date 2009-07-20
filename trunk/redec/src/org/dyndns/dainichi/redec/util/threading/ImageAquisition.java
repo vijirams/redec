@@ -1,7 +1,6 @@
 package org.dyndns.dainichi.redec.util.threading;
 
 import org.dyndns.dainichi.redec.applet.ReDec;
-import org.dyndns.dainichi.redec.util.objects.AveragedImage;
 
 import processing.serial.Serial;
 import JMyron.JMyron;
@@ -12,25 +11,16 @@ import JMyron.JMyron;
  *
  */
 public class ImageAquisition extends Thread {
-	private static final int	FRAMES	= 3;
-	private int					index;
+//	private static final int	FRAMES	= 3;
 	private boolean						run;
 	private int[]				image1;
-	private int[]				image2;
-	private int[]				image3;
 	private JMyron						cam;
 	byte[][]					R		= { { (byte) 10 }};//, { 0 }, { 0 } };
 	byte[][]					G		= { { (byte) 10 }};
-	byte[][]					B		= { { (byte) 10 } };
-	// private byte[][] lighting = { { (byte) 255, (byte) 255, 0 }, { 0, (byte)
-	// 255, (byte) 255 }, { (byte) 255, 0, (byte) 255 } };
-	private int					val		= 10;
-	// private int[][] lighting = {
-	// {8,10,8}};
+	byte[][]					B		= { { (byte) 10  }};
 	private ReDec				parent;
 	private boolean				pause;
 	private Serial				serial;
-	AveragedImage				average;
 
 	/**
 	 * Create a new ImageAquasition thread.
@@ -41,17 +31,17 @@ public class ImageAquisition extends Thread {
 	public ImageAquisition(ReDec parent, int width, int height) {
 
 		this.parent = parent;
-		average = new AveragedImage(parent, width, height, FRAMES);
-		index = 0;
 		image1 = new int[width * height];
-		image2 = new int[width * height];
-		image3 = new int[width * height];
-		serial = new Serial(parent, Serial.list()[1], 38400);
-		setCam(new JMyron());
-		getCam().start(width, height);
-		getCam().findGlobs(0);
-		getCam().adaptivity(0);
+		if(parent.standalone == false) {
+			serial = new Serial(parent, Serial.list()[1], 38400);
+		}
+		cam = new JMyron();
+		cam.start(width, height);
 
+		cam.findGlobs(0);
+		cam.adaptivity(0);
+
+		System.out.println("cam forced to:"+cam.getForcedWidth()+","+cam.getForcedHeight());
 	}
 
 	/*
@@ -62,7 +52,6 @@ public class ImageAquisition extends Thread {
 	@Override
 	public void run()
 	{
-		// TODO Auto-generated method stub
 		super.run();
 
 		while (isRun()) {
@@ -74,7 +63,7 @@ public class ImageAquisition extends Thread {
 					} catch (Exception e) {}
 				}
 			}
-
+			if(parent.standalone == false){
 			try {
 				serial.write(R[0]);
 				sleep(1);
@@ -85,33 +74,15 @@ public class ImageAquisition extends Thread {
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}}
 
-			if (!parent.freeze) {
-				getCam().update();
-			}
-
-
-			switch (index)
-			{
-			case 0:
-				getCam().cameraImageCopy(image1);
-				break;
-			case 1:
-				getCam().cameraImageCopy(image2);
-				break;
-			case 2:
-				getCam().cameraImageCopy(image3);
-				break;
-			}
-			index = (index + 1) % FRAMES;
-
+			cam.cameraImageCopy(image1);
+			cam.update();
 		}
-
-		serial.write("\0\0\0");
-
+		if(parent.standalone == false) {
+			serial.write("\0\0\0");
+		}
 	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -131,16 +102,9 @@ public class ImageAquisition extends Thread {
 	 * @param i image to return
 	 * @return
 	 */
-	public synchronized int[] getImage(int i)
+	public synchronized int[] getImage()
 	{
-		switch (i)
-		{
-		case 0:
-			return image1;
-		case 1:
-			return image2;
-		}
-		return image3;
+		return image1;
 	}
 
 	/**
@@ -180,16 +144,9 @@ public class ImageAquisition extends Thread {
 		return run;
 	}
 
-	/**
-	 * @param cam the cam to set
-	 */
-	public void setCam(JMyron cam)
-	{
-		this.cam = cam;
-	}
 
 	/**
-	 * @return the cam
+	 * @return the cam object
 	 */
 	public JMyron getCam()
 	{
