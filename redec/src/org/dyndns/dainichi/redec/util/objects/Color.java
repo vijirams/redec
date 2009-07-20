@@ -16,6 +16,7 @@ import processing.xml.XMLElement;
 public class Color {
 	public ReDec	parent;
 
+
 	public String	name;
 	public Vector<Float>	hue = new Vector<Float>();
 	public Vector<Float>	saturation= new Vector<Float>();
@@ -173,7 +174,9 @@ public class Color {
 		XMLElement[] children = root.getChildren(name);
 		for(XMLElement x: children)
 		{
-			root.removeChild(x);
+			if(x.getIntAttribute("id")!=-1) {
+				root.removeChild(x);
+			}
 		}
 		for(int i = 0; i < hue.size()/2;i++)
 		{
@@ -233,7 +236,6 @@ public class Color {
 	 */
 	public void loadFromXMLElement(XMLElement x)
 	{
-		int id = x.getIntAttribute("id");
 		hue.add(x.getChild("HSB").getChild("components").getFloatAttribute("a"));
 		hue.add(x.getChild("HSB").getChild("error").getFloatAttribute("a"));
 		saturation.add(x.getChild("HSB").getChild("components").getFloatAttribute("b"));
@@ -260,7 +262,9 @@ public class Color {
 		XMLElement[] children = root.getChildren(name);
 		for(XMLElement x: children)
 		{
-			loadFromXMLElement(x);
+			if(x.getIntAttribute("id") != -1) {
+				loadFromXMLElement(x);
+			}
 		}
 	}
 	/**

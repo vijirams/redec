@@ -13,8 +13,8 @@ import org.dyndns.dainichi.redec.util.PrintfFormat;
 public class Resistor {
 	static char							OHM	= '\u03A9';
 	Color[]			stripes;
-	private int[]			codes;
-	int				stripeIndex	= 0;
+	private Vector<Integer> codes;
+
 	private ReDec	parent;
 	Color			t			= new Color(parent, "bg");
 	private static final PrintfFormat[]	pf	= new PrintfFormat[] { new PrintfFormat("0.%d%d%c"), // 0.xx
@@ -43,7 +43,7 @@ public class Resistor {
 			stripes[i] = t;
 		}
 
-		codes = new int[stripes.length];
+		codes = new Vector<Integer>();
 		assert stripes[0] != null && stripes[1] != null && stripes[2] != null : "stripes not allocated";
 	}
 
@@ -52,23 +52,10 @@ public class Resistor {
 	 */
 	private void decode()
 	{
-		for (int i = 1; i < getCodes().length; i++) {
-			if (getCodes()[i] == 0) {
-				getCodes()[i] = getCodes()[i - 1];
-			}
-		}
-		Vector<Integer> transitions = new Vector<Integer>(5);
-		int prev = 0;
-		for (int i = 0; i < getCodes().length; i++) {
-			if (prev != getCodes()[i]) {
-				transitions.add(i);
-			}
 
-			prev = getCodes()[i];
-		}
-		int index = 0;
-		for (int i : transitions) {
-			stripes[index++] = getColorfromOneHot(getCodes()[i]);
+		for(int i = 0; i< codes.size();i++)
+		{
+			stripes[i] = getColorfromOneHot(codes.get(i));
 		}
 	}
 
@@ -78,7 +65,7 @@ public class Resistor {
 	 */
 	public void add(int c)
 	{
-		getCodes()[stripeIndex++] = c;
+		codes.add(c);
 	}
 
 	/**
@@ -205,8 +192,8 @@ public class Resistor {
 	 * Used to access the bitfield array of detected color stripes.
 	 * @return the codes
 	 */
-	public int[] getCodes()
+	public Integer[] getCodes()
 	{
-		return codes;
+		return codes.toArray(new Integer[codes.size()]);
 	}
 }
