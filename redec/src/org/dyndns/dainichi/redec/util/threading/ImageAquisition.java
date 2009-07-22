@@ -39,9 +39,9 @@ public class ImageAquisition extends Thread {
 		cam.start(width, height);
 
 		cam.findGlobs(0);
-		cam.adaptivity(0);
+		cam.adaptivity(0f);
 
-		System.out.println("cam forced to:"+cam.getForcedWidth()+","+cam.getForcedHeight());
+		//System.out.println("cam forced to:"+cam.getForcedWidth()+","+cam.getForcedHeight());
 	}
 
 	/*
@@ -71,16 +71,23 @@ public class ImageAquisition extends Thread {
 				sleep(1);
 				serial.write(B[0]);
 				sleep(1);
-			} catch (InterruptedException e) {
+
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}}
+
+			}
+			}
 
 			cam.cameraImageCopy(image1);
 			cam.update();
 		}
 		if(parent.standalone == false) {
-			serial.write("\0\0\0");
+			try {
+				serial.write("\0\0\0");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+
+			}
 		}
 	}
 	/*

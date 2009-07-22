@@ -29,7 +29,7 @@ public class Resistor {
 		new PrintfFormat("%d%d0M%c"), // xx0M
 		new PrintfFormat("%d.%dG%c"), // x.xG
 		new PrintfFormat(" %d%dG%c"), // xxG
-		new PrintfFormat("     ")		};			// ???
+		new PrintfFormat("     %3$c")		};			// ???
 
 	/**
 	 * Create a new resistor.
@@ -79,6 +79,8 @@ public class Resistor {
 		int stripe1 = getIndex(stripes[0]);
 		int stripe2 = getIndex(stripes[1]);
 		int stripe3 = getIndex(stripes[2]);
+		if(stripe1==10|| stripe2==10)
+			return pf[12].sprintf(new Object[] { stripe1, stripe2, OHM });
 		return pf[stripe3 + 2].sprintf(new Object[] { stripe1, stripe2, OHM });
 	}
 
