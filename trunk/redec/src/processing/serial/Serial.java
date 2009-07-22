@@ -543,16 +543,13 @@ public class Serial implements SerialPortEventListener {
 	}
 
 
-	public void write(byte bytes[]) {
-		try {
-			output.write(bytes);
-			output.flush();   // hmm, not sure if a good idea
+	public void write(byte bytes[]) throws Exception {
+		output.write(bytes);
+		output.flush();   // hmm, not sure if a good idea
 
-		} catch (Exception e) { // null pointer or serial port dead
-			//errorMessage("write", e);
-			e.printStackTrace();
+
 		}
-	}
+
 
 
 	/**
@@ -566,8 +563,9 @@ public class Serial implements SerialPortEventListener {
 	 * If you want to move Unicode data, you can first convert the
 	 * String to a byte stream in the representation of your choice
 	 * (i.e. UTF8 or two-byte Unicode data), and send it as a byte array.
+	 * @throws IOException
 	 */
-	public void write(String what) {
+	public void write(String what) throws Exception {
 		write(what.getBytes());
 	}
 

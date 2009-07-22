@@ -1,6 +1,11 @@
 package org.dyndns.dainichi.redec.applet;
 
 import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Line2D.Float;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Vector;
@@ -75,11 +80,11 @@ public class ReDec extends PApplet {
 	public Color			yellow;
 	public boolean			freeze;
 	Resistor				res1;													// =
-																					// new
-																					// Resistor(this);
+	// new
+	// Resistor(this);
 	Resistor				res2;													// =
-																					// new
-																					// Resistor(this);
+	// new
+	// Resistor(this);
 	File					projectPath;
 	String					colorsXml;
 
@@ -125,7 +130,7 @@ public class ReDec extends PApplet {
 				// alpha = c[1] - 110;
 				// alpha = red(c) + green(c) + blue(c) - 260;
 				// alpha = 1;
-				if (c[2] > 64) {
+				if (c[2] > 70) {
 					// true) {
 					dest.pixels[desti] = color(c[0], c[1], c[2], c[3]);
 				} else {
@@ -151,6 +156,7 @@ public class ReDec extends PApplet {
 	@Override
 	public void draw()
 	{
+		bands = new Vector<Polygon>();
 		colorMode(RGB, 255);
 		fill(color(0xff000000));
 		stroke(color(0xff000000));
@@ -174,108 +180,233 @@ public class ReDec extends PApplet {
 		grey_img.loadPixels();
 
 		int[] temp = new int[CAM_WIDTH * CAM_HEIGHT];
-
-		// 3 10 3
-		// 0 0 0
-		// -3 -10 -3
-		int h = i1.width;
 		Vector<Point> coords = new Vector<Point>(coordsSize);
-		double localMax = 0;
+		float localMax = 0;
 		pushStyle();
+		convertToBW(grey_img);
 		colorMode(HSB, 1);
+		float[] mag = new float[temp.length];
+		float[] theta = new float[temp.length];
+		localMax = sobel(grey_img, mag, theta);
+
+		// add coordinate of all edges for lsr guess.
 		for (int y = 1; y < i1.height - 1; y++) {
 			for (int x = 1; x < i1.width - 1; x++) {
-
-				double tempx = 3 * saturation(grey_img.pixels[x - 1 + (y - 1) * h]) + 10 * saturation(grey_img.pixels[x - 1 + y * h]) + 3
-						* saturation(grey_img.pixels[x - 1 + (y + 1) * h]) + -3 * saturation(grey_img.pixels[x + 1 + (y - 1) * h]) + -10
-						* saturation(grey_img.pixels[x + 1 + y * h]) + -3 * saturation(grey_img.pixels[x + 1 + (y + 1) * h]);
-				double tempy = 3 * saturation(grey_img.pixels[x - 1 + (y - 1) * h]) + 10 * saturation(grey_img.pixels[x + (y - 1) * h]) + 3
-						* saturation(grey_img.pixels[x + 1 + (y - 1) * h]) + -3 * saturation(grey_img.pixels[x - 1 + (y + 1) * h]) + -10
-						* saturation(grey_img.pixels[x + (y + 1) * h]) + -3 * saturation(grey_img.pixels[x + 1 + (y + 1) * h]);
-				double mag = Math.sqrt(tempx * tempx + tempy * tempy);
-				localMax = Math.max(localMax, mag);
-				// double theta = Math.atan(tempy/tempx);
-				int v = (int) map(mag, 0, max, 0, 255);
-				if (/* (Math.abs(theta)<=0.3&& */mag > max * .1) {
-					temp[x + y * h] = 0xff000000 | (v & 0xff) << 16 | (0xff & v) << 8 | v & 0xff;
+				int i = x + y * i1.width;
+				if (mag[i] > localMax * .3) {
 					coords.add(new Point(x, y));
-				} else {
-					temp[x + y * h] = 0 | (v & 0xff) << 16 | (0xff & v) << 8 | v & 0xff;
 				}
+			}
+		}
+		LSRLineFit(coords);
+		Line2D.Float center = new Line2D.Float(0, lsrLine(0, m, b), 320, lsrLine(320, m, b));
+		Vector<Line2D.Float> lines = new Vector<Line2D.Float>();
+		lines.add((java.awt.geom.Line2D.Float) relative(center, -30));
+		lines.add((java.awt.geom.Line2D.Float) relative(center, 30));
+		lines.add(center);
+		float lineangle = (float) Math.atan(m) + PI / 2f;
+
+		for (int i = 0; i < temp.length; i++) {
+			int v;
+			if (Color.difference(theta[i] + PI / 2f, lineangle, PI) < Math.toRadians(10d) && mag[i] > .07 * localMax) {
+				v = 255;// (int) map(theta[i],-HALF_PI,HALF_PI,0,255);
+			} else {
+				v = 0;
+			}
+			// v = v| v<<8|v<<16;
+			temp[i] = v == 255 ? -1 : 0;// | v;
+
+		}
+		int polyLength = 0;
+		Polygon bnd = new Polygon();
+		boolean startOfBand = true;
+		boolean midOfBand = false;
+		boolean prev = false;
+		boolean extend = false;
+		boolean current = false;
+		int edgeCount = 0;
+		int step = 3;
+		Line2D.Float front;// = normalLine2D(0);
+		for (int x = 0; x < CAM_WIDTH; x+=step) {
+			front = normalLine2D(x);
+			Line2D.Float front2 = (Float) relative(front, -step);
+			Polygon p = new Polygon();
+			Point2D.Float pp = (java.awt.geom.Point2D.Float) intersect(front, lines.get(0));
+			p.addPoint((int)pp.x,(int) pp.y);
+			pp = (java.awt.geom.Point2D.Float) intersect(front2, lines.get(0));
+			p.addPoint((int)pp.x,(int) pp.y);
+			pp = (java.awt.geom.Point2D.Float) intersect(front2, lines.get(1));
+			p.addPoint((int)pp.x,(int) pp.y);
+			pp = (java.awt.geom.Point2D.Float) intersect(front, lines.get(1));
+			p.addPoint((int)pp.x,(int) pp.y);
+			prev = current;
+			current = getNumInQuad(p, temp, CAM_WIDTH) > 15;
+			if(current) {
+				lines.add(front);
+				lines.add(front2);
+			}
+			if(!prev && !current) //zero
+			{
+
+			}
+			else if(!prev && current)//pos edge
+			{
+				if(startOfBand )
+				{
+					bnd = new Polygon();
+					pp = (java.awt.geom.Point2D.Float) intersect(front, lines.get(0));
+					bnd.addPoint((int)pp.x, (int)pp.y);
+					pp = (java.awt.geom.Point2D.Float) intersect(front, lines.get(1));
+					bnd.addPoint((int)pp.x, (int)pp.y);
+					startOfBand = false;
+					midOfBand = true;
+
+				}
+				edgeCount++;
+			}
+			else if(prev && !current)//neg edge
+			{
+				if(edgeCount%2==0)
+				{
+					startOfBand = true;
+					extend = false;
+					midOfBand = false;
+					pp = (java.awt.geom.Point2D.Float) intersect(front2, lines.get(1));
+					bnd.addPoint((int)pp.x, (int)pp.y);
+					pp = (java.awt.geom.Point2D.Float) intersect(front2, lines.get(0));
+					bnd.addPoint((int)pp.x, (int)pp.y);
+					bands.add(bnd);
+				}
+			}
+			else//(prev && current) // one
+			{
 
 			}
 
+
 		}
+
 		popStyle();
 		coordsSize = max(coordsSize, coords.capacity());
 		max = localMax;
-		LSRLineFit(coords);
 
-		grey_img.pixels = temp;
-		grey_img.updatePixels();
-		// grey_img.filter(THRESHOLD, 0.5f);
-		image(grey_img, 0, 0);
 
-		Vector<Integer> trans = new Vector<Integer>();
-		double justadded = 0;
-		double rate = .05;
-		if (m < 1 || m > -1) {
-			int y;
-			for (int x = 0; x < CAM_WIDTH; x++) {
-				y = lsrLine(x);
-				y = constrain(y, 0, CAM_HEIGHT - 1);
-				if (temp[x + h * y] < 0 && justadded < .5) {
-					trans.add(x);
-					justadded += 1;
-				}
-				if (justadded > 0) {
-					justadded -= rate;
-				}
+		grey_img.pixels = temp;grey_img.updatePixels();image(grey_img, 0, 0);
 
-			}
-		} else {
-			int x;
-			for (int y = 0; y < CAM_HEIGHT; y++) {
-				x = (int) ((y - b) / m);
-				x = constrain(x, 0, CAM_HEIGHT - 1);
-				if (temp[x + h * y] < 0 && justadded < .5) {
-					trans.add(x);
-					justadded += 1;
-				}
-				if (justadded > 0) {
-					justadded -= rate;
-				}
-			}
-		}
+		//}
 
-		bands = new Vector<Point>();
-		int offset =30;// (int) (30 * Math.cos(Math.atan(m)));
-		for (int i : trans) {
-			bands.add(intersect(0, lsrLine(0) - offset, 320, lsrLine(320) - offset, 0, normalLine(0, i), 320, normalLine(320, i)));
-			bands.add(intersect(0, lsrLine(0) + offset, 320, lsrLine(320) + offset, 0, normalLine(0, i), 320, normalLine(320, i)));
 
-		}
 
 		processPixels(bg2);
 		textAndColors();
-		stroke(-1);
-		line(0, lsrLine(0) - offset, 320, lsrLine(320) - offset);
-		line(0, lsrLine(0), 320, lsrLine(320));
-		line(0, lsrLine(0) + offset, 320, lsrLine(320) + offset);
+//		for (Line2D l : lines) {
+//			drawLine(l, 0xff7f7f7f);
+//		}
 
 	}
 
-	Vector<Point>	bands;
-
-	private Point intersect(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
+	private Line2D relative(Line2D input, float L)
 	{
-		int x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
-		int y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
-		x = constrain(x, 0, CAM_WIDTH-1);
-		y = constrain(y, 0, CAM_HEIGHT-1);
-		assert x>=0 && y>=0:"undershoot";
-		assert x< CAM_WIDTH&&  y< CAM_HEIGHT:"overshoot";
-		return new Point(x,y);
+		float h2 = L;
+		float m = (float) ((input.getY2() - input.getY1()) / (input.getX2() - input.getX1()));
+		if (m != 0) {
+			m = -1 / m;
+			h2 = (float) (L * Math.sqrt(m * m + 1) / m);
+		}
+		Line2D.Float l = new Line2D.Float((float) input.getX1(), (float) input.getY1() + h2, (float) input.getX2(), (float) input.getY2() + h2);
+
+		return l;
+	}
+	private Line2D.Float normalLine2D(float x)
+	{
+		return new Line2D.Float(0,normalLine(0, x, (float) (m*x+b), m),320,normalLine(320, x, (float) (m*x+b), m));
+	}
+	private float sobel(PImage input, float[] mag, float[] theta)
+	{
+		input.loadPixels();
+		int h = input.width;
+		float localMax = 0;
+		for (int y = 1; y < input.height - 1; y++) {
+			for (int x = 1; x < input.width - 1; x++) {
+				int i = x + y * input.width;
+				float tempx = 3 * (0xff & input.pixels[i - 1 - h]) + 10 * (0xff & input.pixels[i - 1]) + 3 * (0xff & input.pixels[i - 1 + h]) - 3
+						* (0xff & input.pixels[i + 1 - h]) - 10 * (0xff & input.pixels[i + 1]) - 3 * (0xff & input.pixels[i + 1 + h]);
+				float tempy = 3 * (0xff & input.pixels[i - 1 - h]) + 10 * (0xff & input.pixels[i - h]) + 3 * (0xff & input.pixels[i - h + 1]) - 3
+						* (0xff & input.pixels[i - 1 + h]) - 10 * (0xff & input.pixels[i + h]) - 3 * (0xff & input.pixels[i + 1 + h]);
+				mag[i] = (float) Math.sqrt(tempx * tempx + tempy * tempy);
+				localMax = Math.max(localMax, mag[i]);
+				theta[i] = (float) Math.atan(tempy / tempx);
+			}
+		}
+		input.updatePixels();
+		return localMax;
+	}
+
+	/**
+	 * Converts a given image to black and white in a manner that saves gold and
+	 * yellow.
+	 *
+	 * @param input
+	 *            image to convert.
+	 */
+	private void convertToBW(PImage input)
+	{
+		input.loadPixels();
+		pushStyle();
+		colorMode(HSB, 1);
+		for (int i = 0; i < input.pixels.length; i++) {
+			int pixel = input.pixels[i];
+			int v = constrain((int) (255 * brightness(pixel) - 196 * saturation(pixel)), 0, 255);
+			input.pixels[i] = 0xff000000 | (v & 0xff) << 16 | (0xff & v) << 8 | v & 0xff;
+		}
+		popStyle();
+		input.updatePixels();
+	}
+
+	Vector<Polygon>	bands;
+
+	private void drawLine(Line2D l, int color)
+	{
+		pushStyle();
+		stroke(color);
+		line((float) l.getX1(), (float) l.getY1(), (float) l.getX2(), (float) l.getY2());
+		popStyle();
+
+	}
+
+	private Point2D intersect(Line2D.Float l1, Line2D.Float l2)
+	{
+
+		return intersect(l1.x1, l1.y1, l1.x2, l1.y2, l2.x1, l2.y1, l2.x2, l2.y2);
+
+	}
+
+	/**
+	 * Returns the intersection of two lines defined with a set of coordinates
+	 *
+	 * @param x1
+	 *            Line1 x1
+	 * @param y1
+	 *            Line1 y1
+	 * @param x2
+	 *            Line1 x2
+	 * @param y2
+	 *            Line1 y2
+	 * @param x3
+	 *            Line2 x1
+	 * @param y3
+	 *            Line2 y1
+	 * @param x4
+	 *            Line2 x2
+	 * @param y4
+	 *            Line2 y2
+	 * @return the intersection of these two lines.
+	 */
+	private Point2D.Float intersect(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
+	{
+		float x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+		float y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+		return new Point2D.Float(x, y);
 	}
 
 	/**
@@ -295,19 +426,24 @@ public class ReDec extends PApplet {
 		b = y / n - m * x / n;
 	}
 
-	private float intersectX(float x, float y)
+	private int lsrLine(float x, double m2, double b2)
 	{
-		return (float) (y * m - b * m + x);
+		return (int) (m2 * x + b2);
 	}
 
-	private int lsrLine(float x)
+	private int lsrLineInv(float y, double m, double b)
 	{
-		return (int) (m * x + b);
+		return (int) ((y - b) / m);
 	}
 
-	private int normalLine(float x, float intersect)
+	private int normalLine(float x, float ix, float iy, double m)
 	{
-		return (int) ((intersect - x) / m + b);
+		return (int) (iy + (ix - x) / m);
+	}
+
+	private int normalLineInv(float y, float ix, float iy, double m)
+	{
+		return (int) (-(y - m * iy - ix) / m);
 	}
 
 	/*
@@ -328,93 +464,16 @@ public class ReDec extends PApplet {
 				endProgram();
 				break;
 			case DOWN:// if DOWN or RIGHT arrow is pressed increment color
-						// selector.
+				// selector.
 			case RIGHT:
 				colorNumber = (colorNumber + 1) % 12;
 				break;
 			case LEFT: // if UP or LEFT arrow is pressed, decrement color
-						// selector.
+				// selector.
 			case UP:
 				colorNumber = colorNumber <= 0 ? 11 : colorNumber - 1;
 				break;
 			}
-		} else {
-			switch (key)
-			{
-			case ESC: // if ESC is pressed exit program.
-				key = 0;
-				endProgram();
-				break;
-
-			case 's':// save current Image to program directory
-			case 'S':
-				bg1.save(projectPath.getAbsolutePath() + "/" + System.currentTimeMillis() + ".png");
-				break;
-			case 'r':
-			case 'R':
-				zeroColors();
-				break;
-			case 'p':// pause capture
-			case 'P':
-				freeze = !freeze;
-				break;
-			case ENTER:// press enter to save a calibration point.
-			case RETURN:
-				switch (colorNumber)
-				{
-				case 0x0:
-					local = silver;
-					break;
-				case 0x1:
-					local = gold;
-					break;
-				case 0x2:
-					local = black;
-					break;
-				case 0x3:
-					local = brown;
-					break;
-				case 0x4:
-					local = red;
-					break;
-				case 0x5:
-					local = orange;
-					break;
-				case 0x6:
-					local = yellow;
-					break;
-				case 0x7:
-					local = green;
-					break;
-				case 0x8:
-					local = blue;
-					break;
-				case 0x9:
-					local = violet;
-					break;
-				case 0xa:
-					local = grey;
-					break;
-				case 0xb:
-					local = white;
-					break;
-				default:
-					local = null;
-				}
-				saveColor(local);
-				break;
-			}
-		}
-	}
-
-	@Override
-	public void mousePressed()
-	{
-		super.mousePressed();
-		if (mouseButton == RIGHT) {
-			img.getCam().settings();// click the window to get the settings
-		}
-		if (mouseButton == LEFT) {
 			switch (colorNumber)
 			{
 			case 0x0:
@@ -456,6 +515,43 @@ public class ReDec extends PApplet {
 			default:
 				local = null;
 			}
+		} else {
+			switch (key)
+			{
+			case ESC: // if ESC is pressed exit program.
+				key = 0;
+				endProgram();
+				break;
+
+			case 's':// save current Image to program directory
+			case 'S':
+				bg1.save(projectPath.getAbsolutePath() + "/" + System.currentTimeMillis() + ".png");
+				break;
+			case 'r':
+			case 'R':
+				zeroColors();
+				break;
+			case 'p':// pause capture
+			case 'P':
+				freeze = !freeze;
+				break;
+			case ENTER:// press enter to save a calibration point.
+			case RETURN:
+
+				saveColor(local);
+				break;
+			}
+		}
+	}
+
+	@Override
+	public void mousePressed()
+	{
+		super.mousePressed();
+		if (mouseButton == RIGHT) {
+			img.getCam().settings();// click the window to get the settings
+		}
+		if (mouseButton == LEFT) {
 			saveColor(local);
 		}
 	}
@@ -483,102 +579,60 @@ public class ReDec extends PApplet {
 		white.loadFromXML(root);
 	}
 
-	public PImage getQuad(Point[] pts, PImage src)
+	public int getNumInQuad(Polygon p, int[] src, int width)
 	{
-		assert pts.length == 4;
+		int count = 0;
+		Rectangle bounds = p.getBounds();
+		bounds.x = bounds.x < 0 ? 0 : bounds.x >= CAM_WIDTH ? CAM_WIDTH - 1 : bounds.x;
+		bounds.y = bounds.y < 0 ? 0 : bounds.y >= CAM_HEIGHT ? CAM_HEIGHT - 1 : bounds.y;
+		bounds.width = bounds.x + bounds.width >= CAM_WIDTH ? CAM_WIDTH - bounds.x - 1 : bounds.width;
+		bounds.height = bounds.y + bounds.height >= CAM_HEIGHT ? CAM_HEIGHT - bounds.y - 1 : bounds.height;
+		for (int y = bounds.y; y <= bounds.y + bounds.height; y++) {
+			for (int x = bounds.x; x <= bounds.x + bounds.width; x++) {
+				if (p.contains(x, y)) {
+					count = src[x + y * width] < 0 ? count + 1 : count;
+				}
+			}
+		}
+		return count;
+	}
+
+	public PImage getQuad(Polygon p, PImage src)
+	{
 		src.loadPixels();
-		float[] xs = new float[] { pts[0].x, pts[1].x, pts[2].x, pts[3].x };
-		float[] ys = new float[] { pts[0].y, pts[1].y, pts[2].y, pts[3].y };
-
-		float[] bounds = new float[] { max(0,min(xs)), max(0,min(ys)), min(src.width,max(xs)), max(src.height,max(ys)) };
-		PImage ret = createImage((int)(bounds[2] - bounds[0]), (int)(bounds[3] - bounds[1]), ARGB);
+		Rectangle bounds = p.getBounds();
+		bounds.x = bounds.x < 0 ? 0 : bounds.x >= CAM_WIDTH ? CAM_WIDTH - 1 : bounds.x;
+		bounds.y = bounds.y < 0 ? 0 : bounds.y >= CAM_HEIGHT ? CAM_HEIGHT - 1 : bounds.y;
+		bounds.width = bounds.x + bounds.width >= CAM_WIDTH ? CAM_WIDTH - bounds.x - 1 : bounds.width < 0 ? 0 : bounds.width;
+		bounds.height = bounds.y + bounds.height >= CAM_HEIGHT ? CAM_HEIGHT - bounds.y - 1 : bounds.height < 0 ? 0 : bounds.height;
+		PImage ret = createImage(bounds.width, bounds.height, ARGB);
 		ret.loadPixels();
-		float[] m = new float[] { (ys[1] - ys[0]) / (xs[1] - xs[0]), (ys[2] - ys[1]) / (xs[2] - xs[1]), (ys[3] - ys[2]) / (xs[3] - xs[2]), (ys[0] - ys[3]) / (xs[0] - xs[3]) };
-		for (int y = (int) bounds[1];y< bounds[3];y++) {
-			for (int x = (int) bounds[0]; x < bounds[2]; x++) {
-
-				ret.pixels[(int) (x - bounds[0] + (y - bounds[1]) * ret.width)] = isInside(pts, x, y) ? src.pixels[x + y * src.width] : 0;
+		for (int y = bounds.y; y < bounds.y + bounds.height; y++) {
+			for (int x = bounds.x; x < bounds.x + bounds.width; x++) {
+				ret.pixels[x - bounds.x + (y - bounds.y) * ret.width] = p.contains(x, y) ? src.pixels[x + y * src.width] : 0;
 			}
 		}
 		ret.updatePixels();
 		return ret;
 	}
+
 	/**
 	 * set too true to allow running without a serial device.
 	 */
-	public boolean standalone = false;
-	private boolean isInside(Point[] pts,int x,int y)
+	public boolean	standalone	= false;
+
+	private void drawPoly(Polygon p, int color)
 	{
-		assert pts.length ==4;
-		float[] xs = new float[]{pts[0].x,pts[1].x,pts[2].x,pts[3].x};
-		float[] ys = new float[]{pts[0].y,pts[1].y,pts[2].y,pts[3].y};
+		pushStyle();
 
-		float[] bounds = new float[]{min(xs),min(ys),max(xs),max(ys)};
-		float[] m = new float[]{
-				(ys[1]-ys[0])/(xs[1]-xs[0]),
-				(ys[2]-ys[1])/(xs[2]-xs[1]),
-				(ys[3]-ys[2])/(xs[3]-xs[2]),
-				(ys[0]-ys[3])/(xs[0]-xs[3])};
-		boolean inside = false;
-		if(line(x,xs[0],ys[0],xs[1],ys[1])<y)
-		{
-			if(m[3] < 0)
-			{
-				if(line(x,xs[0],ys[0],xs[3],ys[3])<y)
-				{
-					if(m[1]<0)
-					{
-						if(line(x,xs[1],ys[1],xs[2],ys[2])>y)
-						{
-							if(line(x,xs[2],ys[2],xs[3],ys[3])>y)
-							{
-								inside = true;
-							}
-						}
-					}
-					else
-					{
-						if(line(x,xs[1],ys[1],xs[2],ys[2])<y)
-						{
-							if(line(x,xs[2],ys[2],xs[3],ys[3])>y)
-							{
-								inside = true;
-							}
-						}
-					}
-				}
-
-			}
-			else
-			{
-				if(m[1]<0)
-				{
-					if(line(x,xs[1],ys[1],xs[2],ys[2])>y)
-					{
-						if(line(x,xs[2],ys[2],xs[3],ys[3])>y)
-						{
-							inside = true;
-						}
-					}
-				}
-				else
-				{
-					if(line(x,xs[1],ys[1],xs[2],ys[2])<y)
-					{
-						if(line(x,xs[2],ys[2],xs[3],ys[3])>y)
-						{
-							inside = true;
-						}
-					}
-				}
-			}
+		stroke(color);
+		fill(color&0xffffff,0x7f);
+		beginShape();
+		for (int i = 0; i < p.npoints; i++) {
+			vertex(p.xpoints[i], p.ypoints[i]);
 		}
-		return inside;
-	}
-
-	private float line(float x, float x1, float y1, float x2, float y2)
-	{
-		return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+		endShape(CLOSE);
+		popStyle();
 	}
 
 	/**
@@ -590,9 +644,10 @@ public class ReDec extends PApplet {
 		res1 = new Resistor(this);
 		res2 = new Resistor(this);
 
-		for (int i = 0; i+3 < bands.size()&& i+3<12; i += 4) {
-			Point[] points = new Point[] { bands.get(i), bands.get(i + 1), bands.get(i + 2), bands.get(i + 3) };
-			PImage band = getQuad(points, img);
+		for (int i = 0; i < bands.size(); i++) {
+			stroke(0xffffff00);
+			drawPoly(bands.get(i), -1);
+			PImage band = getQuad(bands.get(i), img);
 			float[][] valsRGB = new float[][] { Statistics.process(this, band, Statistics.RED), Statistics.process(this, band, Statistics.GREEN),
 					Statistics.process(this, band, Statistics.BLUE) };
 			float[][] valsHSB = new float[][] { Statistics.process(this, band, Statistics.HUE), Statistics.process(this, band, Statistics.SATURATION),
@@ -641,7 +696,7 @@ public class ReDec extends PApplet {
 				stats[4].zero();
 				stats[5].zero();
 			}
-			if (isInside(points, mouseX, mouseY)) {
+			if (bands.get(i).contains(mouseX, mouseY)) {
 				rd[0] = stats[0].add(valsRGB[0][Statistics.MEAN])[Statistics.MEAN];
 				rd[1] = stats[0].add(valsRGB[0][Statistics.MEAN])[Statistics.SD];
 				gn[0] = stats[1].add(valsRGB[1][Statistics.MEAN])[Statistics.MEAN];
@@ -649,12 +704,12 @@ public class ReDec extends PApplet {
 				bu[0] = stats[2].add(valsRGB[2][Statistics.MEAN])[Statistics.MEAN];
 				bu[1] = stats[2].add(valsRGB[2][Statistics.MEAN])[Statistics.SD];
 
-				hu[0] = stats[3].add(hue(cHSB))[Statistics.MEAN];
-				hu[1] = stats[3].add(hue(cHSB))[Statistics.SD];
-				st[0] = stats[4].add(saturation(cHSB))[Statistics.MEAN];
-				st[1] = stats[4].add(saturation(cHSB))[Statistics.SD];
-				bt[0] = stats[5].add(brightness(cHSB))[Statistics.MEAN];
-				bt[1] = stats[5].add(brightness(cHSB))[Statistics.SD];
+				hu[0] = stats[3].add(valsHSB[0][Statistics.MEAN])[Statistics.MEAN];
+				hu[1] = stats[3].add(valsHSB[0][Statistics.MEAN])[Statistics.SD];
+				st[0] = stats[4].add(valsHSB[1][Statistics.MEAN])[Statistics.MEAN];
+				st[1] = stats[4].add(valsHSB[1][Statistics.MEAN])[Statistics.SD];
+				bt[0] = stats[5].add(valsHSB[2][Statistics.MEAN])[Statistics.MEAN];
+				bt[1] = stats[5].add(valsHSB[2][Statistics.MEAN])[Statistics.SD];
 
 				rgb = new PrintfFormat("\nR:% 6.2f\t\u00b1% 6.2f\nG:% 6.2f\t\u00b1% 6.2f\nB:% 6.2f\t\u00b1% 6.2f")
 						.sprintf(new Object[] { rd[0], rd[1], gn[0], gn[1], bu[0], bu[1] });
@@ -683,6 +738,7 @@ public class ReDec extends PApplet {
 	 */
 	public void saveColor(Color c)
 	{
+
 		c.hue.add(hu[0]);
 		c.hue.add(hu[1]);
 		c.saturation.add(st[0]);
@@ -708,6 +764,7 @@ public class ReDec extends PApplet {
 	{
 
 		size(2 * CAM_WIDTH, 1 * CAM_HEIGHT);
+
 		projectPath = sketchFile("").getParentFile();
 		colorsXml = projectPath.getPath() + "/colors.xml";
 		zeroColors();
@@ -813,7 +870,6 @@ public class ReDec extends PApplet {
 		text(frameRate, 400, 7 * g.textLeading);
 		popStyle();
 	}
-
 	/**
 	 * Converts a standard PImage type pixel array(in RGB) to a 3x pixel array
 	 * containing HSB values. output if formatted thus (n is an individual pixel
