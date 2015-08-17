@@ -1,0 +1,1 @@
+A computer vision project that uses a USB webcam to decode the color bands on a 1/4w resistor using JMyron and Processing
